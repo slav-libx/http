@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899.12.30 00:00:00.000.587,D:\eidos\HTTP\lib\Lib.HTTPServer.ResponseContents.pas=D:\eidos\HTTP\lib\Lib.HTTPConsts.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.626,=D:\Projects\HTTP\HTTPServer\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.501,=D:\Projects\HTTP\lib\Lib.HTTPUtils.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.775,=D:\eidos\HTTP\HTTPServer\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.889,=D:\eidos\HTTP\HTTPServer\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.014,=D:\Projects\HTTP\HTTPServer\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.773,D:\eidos\HTTP\HTTPServer\MainForm.pas=D:\eidos\HTTP\HTTPServer\Forms\Form.ServerMain.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.939,C:\Users\v.zakirov\Documents\Embarcadero\Studio\Projects\Project3.dproj=D:\Projects\HTTPServer\httpserver.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.492,=D:\Projects\HTTP\lib\Lib.TCPSocket2.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.017,D:\Projects\HTTP\HTTPServer\Unit1.pas=D:\Projects\HTTP\lib\Lib.HTTPServer.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.029,C:\Users\v.zakirov\Documents\Embarcadero\Studio\Projects\Unit3.dfm=D:\Projects\HTTPServer\MainForm.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.597,=D:\eidos\HTTP\lib\Lib.SSL.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.930,=D:\eidos\HTTP\lib\Lib.SSL.Api.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.022,D:\Projects\HTTP\lib\Lib.HTTPSocket.pas=D:\Projects\HTTP\HTTPServer\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.773,D:\eidos\HTTP\HTTPServer\MainForm.dfm=D:\eidos\HTTP\HTTPServer\Forms\Form.ServerMain.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.232,D:\eidos\HTTP\lib\Lib.HTTPContainer.pas=D:\eidos\HTTP\HTTPServer\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.350,D:\eidos\HTTP\lib\Lib.HTTPContent.pas=D:\eidos\HTTP\lib\Lib.HTTPContainer.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.029,C:\Users\v.zakirov\Documents\Embarcadero\Studio\Projects\Unit3.pas=D:\Projects\HTTPServer\MainForm.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.411,D:\eidos\HTTP\HTTPServer\Unit1.pas=D:\eidos\HTTP\lib\Lib.HTTPServer.ResponseContents.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.654,=C:\Users\v.zakirov\Documents\Embarcadero\Studio\Projects\Unit3.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.973,D:\Projects_trunk\HTTP2\HTTPServer\Unit1.pas=D:\Projects_trunk\HTTP2\lib\Lib.HTTPResponse.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.456,=D:\Projects_trunk\HTTP2\HTTPServer\Unit1.pas</Transaction>
+  </Transactions>
+</BorlandProject>

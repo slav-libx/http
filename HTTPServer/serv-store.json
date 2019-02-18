@@ -1,0 +1,19 @@
+{
+  "form": {
+    "rect": {
+      "left": 387,
+      "top": 93,
+      "right": 922,
+      "bottom": 666
+    }
+  },
+  "host": "",
+  "port": 80,
+  "home": "D:\\eidos\\HTTP\\HTTPServer\\Home",
+  "keep-alive": {
+    "timeout": 10
+  },
+  "aliases": [
+    "video=D:\\Picture\\flv"
+  ]
+}
