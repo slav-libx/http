@@ -7,11 +7,11 @@ uses
   Lib.HTTPContent,
   Lib.HTTPUtils;
 
-procedure GetHeaderRequestValues(const URL: string; const HeaderName: string; Values: TStrings);
+procedure GetHeaderRequestValues(const URL,HeaderName: string; Values: TStrings);
 
 implementation
 
-procedure GetHeaderRequestValues(const URL: string; const HeaderName: string; Values: TStrings);
+procedure GetHeaderRequestValues(const URL,HeaderName: string; Values: TStrings);
 var Protocol,Host,Resource: string;
 begin
 
