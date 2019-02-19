@@ -21,7 +21,7 @@ const
     '<center><h1>404 Not Found</h1></center>'+CRLF+
     '<hr><center>server</center>'+CRLF+
     '</body>'+CRLF+
-    '</html>'+CRLF;
+    '</html>';
 
   MIME_Types: array of string = [
 

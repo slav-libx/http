@@ -58,7 +58,6 @@ type
     function Execute: Boolean;
     procedure SetURL(const Value: string);
     property Request: TRequest read FRequest;
-
   end;
 
 implementation
