@@ -209,27 +209,7 @@ object RequestForm: TRequestForm
     TabOrder = 8
     Text = 'ContentTypeComboBox'
     Items.Strings = (
-      'text/plain'
-      'text/html'
-      'text/css'
-      'text/csv'
-      'text/xml'
-      'image/jpeg'
-      'image/gif'
-      'image/svg+xml'
-      'image/png'
-      'image/vnd.microsoft.icon'
-      'application/json'
-      'application/pdf'
-      'application/zip'
-      'application/javascript'
-      'application/octet-stream'
-      'application/x-www-form-urlencoded'
-      'video/mpeg'
-      'video/mp4'
-      'video/x-ms-wmv'
-      'video/x-flv'
-      'video/x-msvideo')
+      '')
   end
   object OpenFileButton: TButton
     Left = 80

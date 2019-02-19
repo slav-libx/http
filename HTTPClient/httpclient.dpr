@@ -5,7 +5,8 @@ uses
   Form.ClientMain in 'Forms\Form.ClientMain.pas' {Form2},
   Lib.JSON.Store in '..\lib\Lib.JSON.Store.pas',
   Form.Request in 'Forms\Form.Request.pas' {RequestForm},
-  Lib.JSON.Format in '..\lib\Lib.JSON.Format.pas';
+  Lib.JSON.Format in '..\lib\Lib.JSON.Format.pas',
+  Lib.HeaderValues in 'Units\Lib.HeaderValues.pas';
 
 {$R *.res}
 

@@ -82,6 +82,8 @@ type
     procedure Assign(Source: TContent); override;
     function SendHeaders: string; override;
     procedure SetResult(Code: Integer; const Text: string);
+    function ConnectionClose: Boolean;
+    procedure SetResource(const Resource: string);
   end;
 
 implementation
@@ -400,7 +402,6 @@ begin
 end;
 
 procedure TResponse.DoHeader;
-var Ext: string;
 begin
 
   if HTTPTrySplitResponseResult(Headers,Protocol,ResultCode,ResultText) then
@@ -408,20 +409,33 @@ begin
 
     Headers.Delete(0);
 
-    Ext:=HTTPGetContentExt(GetHeaderValue('Content-Type'));
-
-    if ResultCode<>HTTP_SUCCESS then
-      ResourceName:='res'
-    else
-    if ResourceName='' then
-      ResourceName:='file';
-
-    if GetHeaderValue('Content-Type')<>HTTPGetMIMEType(ExtractFileExt(ResourceName)) then
-      ResourceName:=ChangeFileExt(ResourceName,Ext);
-
   end;
 
   inherited;
+end;
+
+function TResponse.ConnectionClose: Boolean;
+begin
+  Result:=GetHeaderValue('Connection')='close';
+end;
+
+procedure TResponse.SetResource(const Resource: string);
+var Ext: string;
+begin
+
+  ResourceName:=HTTPDecodeResourceName(HTTPExtractResourceName(Resource));
+  LocalResource:=HTTPResourceToLocal(Resource);
+
+  Ext:=HTTPGetContentExt(GetHeaderValue('Content-Type'));
+
+  if ResultCode<>HTTP_SUCCESS then
+    ResourceName:='res'
+  else
+  if ResourceName='' then
+    ResourceName:='file';
+
+  if GetHeaderValue('Content-Type')<>HTTPGetMIMEType(ExtractFileExt(ResourceName)) then
+    ResourceName:=ChangeFileExt(ResourceName,Ext);
 
 end;
 

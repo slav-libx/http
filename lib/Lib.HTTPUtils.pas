@@ -6,7 +6,8 @@ uses
   System.SysUtils,
   System.Classes,
   System.Math,
-  System.NetEncoding;
+  System.NetEncoding,
+  Lib.HTTPConsts;
 
 type
   THTTPException = class(Exception);
@@ -21,9 +22,10 @@ type
     function Read: T;
   end;
 
-function HTTPGetContentExt(ContentType: string): string;
+function HTTPGetContentExt(const ContentType: string): string;
 function HTTPGetMIMEType(const FileExt: string): string;
-function HTTPExtractResourceName(Resource: string): string;
+procedure HTTPGetContentTypes(Strings: TStrings);
+function HTTPExtractResourceName(const Resource: string): string;
 function HTTPDecodeResourceName(const ResourceName: string): string;
 function HTTPEncodeResourceName(const ResourceName: string): string;
 procedure HTTPSplitURL(const URL: string; out Protocol,Host,Resource: string);
@@ -43,69 +45,46 @@ function BytesEndsWith(const B,E: TBytes): Boolean;
 
 implementation
 
-function HTTPGetContentExt(ContentType: string): string;
+function SameMap(const V: array of string; const D: string;
+  O1,O2: Integer; CompareProc: TFunc<string,Boolean>): string;
+var I: Integer;
 begin
+  Result:=D;
+  for I:=0 to High(V) div 2 do
+  if CompareProc(V[I*2+O1]) then Exit(V[I*2+O2]);
+end;
 
-  Result:='';
-
-  if ContentType.StartsWith('image/jpeg') then Exit('.jpeg');
-  if ContentType.StartsWith('image/jpeg') then Exit('.jpeg');
-  if ContentType.StartsWith('image/gif') then Exit('.gif');
-  if ContentType.StartsWith('image/svg+xml') then Exit('.svg');
-  if ContentType.StartsWith('image/png') then Exit('.png');
-  if ContentType.StartsWith('image/vnd.microsoft.icon') then Exit('.ico');
-
-  if ContentType.StartsWith('text/html') then Exit('.html');
-  if ContentType.StartsWith('text/plain') then Exit('.txt');
-  if ContentType.StartsWith('text/css') then Exit('.css');
-  if ContentType.StartsWith('text/csv') then Exit('.csv');
-  if ContentType.StartsWith('text/xml') then Exit('.xml');
-
-  if ContentType.StartsWith('application/json') then Exit('.json');
-  if ContentType.StartsWith('application/pdf') then Exit('.pdf');
-  if ContentType.StartsWith('application/zip') then Exit('.zip');
-  if ContentType.StartsWith('application/javascript') then Exit('.js');
-
-  if ContentType.StartsWith('video/mpeg') then Exit('.mpeg');
-  if ContentType.StartsWith('video/mp4') then Exit('.mp4');
-  if ContentType.StartsWith('video/x-ms-wmv') then Exit('.wmv');
-  if ContentType.StartsWith('video/x-flv') then Exit('.flv');
-  if ContentType.StartsWith('video/x-msvideo') then Exit('.avi');
-
+function HTTPGetContentExt(const ContentType: string): string;
+begin
+  Result:=
+    SameMap(MIME_Types,'',1,0,
+    function(MIMEType: string): Boolean
+    begin
+      Result:=ContentType.StartsWith(MIMEType);
+    end);
 end;
 
 function HTTPGetMIMEType(const FileExt: string): string;
 begin
-
-  Result:='application/octet-stream';
-
-  if FileExt='.jpeg' then Exit('image/jpeg');
-  if FileExt='.jpg' then Exit('image/jpeg');
-  if FileExt='.gif' then Exit('image/gif');
-  if FileExt='.svg' then Exit('image/svg+xml');
-  if FileExt='.png' then Exit('image/png');
-  if FileExt='.ico' then Exit('image/vnd.microsoft.icon');
-
-  if FileExt='.html' then Exit('text/html');
-  if FileExt='.txt' then Exit('text/plain');
-  if FileExt='.css' then Exit('text/css');
-  if FileExt='.csv' then Exit('text/csv');
-  if FileExt='.xml' then Exit('text/xml');
-
-  if FileExt='.json' then Exit('application/json');
-  if FileExt='.pdf' then Exit('application/pdf');
-  if FileExt='.zip' then Exit('application/zip');
-  if FileExt='.js' then Exit('application/javascript');
-
-  if FileExt='.mpeg' then Exit('video/mpeg');
-  if FileExt='.mp4' then Exit('video/mp4');
-  if FileExt='.wmv' then Exit('video/x-ms-wmv');
-  if FileExt='.flv' then Exit('video/x-flv');
-  if FileExt='.avi' then Exit('video/x-msvideo');
-
+  Result:=
+    SameMap(MIME_Types,'application/octet-stream',0,1,
+    function(MIMEType: string): Boolean
+    begin
+      Result:=FileExt.ToLower=MIMEType;
+    end);
 end;
 
-function HTTPExtractResourceName(Resource: string): string;
+procedure HTTPGetContentTypes(Strings: TStrings);
+var I: Integer;
+begin
+  Strings.BeginUpdate;
+  Strings.Clear;
+  for I:=0 to High(MIME_Types) div 2 do
+    Strings.Add(MIME_Types[I*2+1]);
+  Strings.EndUpdate;
+end;
+
+function HTTPExtractResourceName(const Resource: string): string;
 begin
   Result:=HTTPExtractFileName(Resource);
   if Result.Contains('?') then

@@ -131,9 +131,9 @@ end;
 procedure TForm2.ShowPicture(const FileName,PictureHint: string);
 var S: string;
 begin
-  S:=ExtractFileExt(FileName).ToLower+'.';
-  if S<>'.' then
-  if '.jpeg.jpg.gif.png.'.Contains(S) then
+  S:=ExtractFileExt(FileName).ToLower;
+  if S<>'' then
+  if '.jpeg.jpg.gif.png.'.Contains(S+'.') then
   if FileExists(FileName) then
   try
     Image1.Picture.LoadFromFile(FileName);
@@ -228,7 +228,7 @@ procedure TForm2.Button6Click(Sender: TObject);
 var F: TRequestForm;
 begin
   F:=TRequestForm.Create(Self);
-  F.URL:=Edit1.Text;
+  F.SetURL(Edit1.Text);
   F.Request.AddHeaderKeepAlive(CheckBox1.Checked,StrToInt64Def(Edit2.Text,0));
   if F.Execute then
   begin
@@ -334,7 +334,7 @@ end;
 
 procedure TForm2.OnClientClose(Sender: TObject);
 begin
-  Memo1.Lines.Add('close connection');
+//  Memo1.Lines.Add('close connection');
 end;
 
 procedure TForm2.OnClientException(Sender: TObject);

@@ -15,7 +15,9 @@ uses
   Lib.HTTPContent,
   Vcl.StdCtrls,
   Vcl.ExtCtrls,
-  Lib.HTTPUtils;
+  Lib.HTTPConsts,
+  Lib.HTTPUtils,
+  Lib.HeaderValues;
 
 type
   TRequestForm = class(TForm)
@@ -48,15 +50,13 @@ type
     procedure RemoveFileButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
-    FURL: string;
     FRequest: TRequest;
     FContentFileName: string;
-    procedure SetURL(const Value: string);
   public
-    function Execute: Boolean;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    property URL: string read FURL write SetURL;
+    function Execute: Boolean;
+    procedure SetURL(const Value: string);
     property Request: TRequest read FRequest;
 
   end;
@@ -68,9 +68,9 @@ implementation
 constructor TRequestForm.Create(AOwner: TComponent);
 begin
   inherited;
-  FURL:='';
   FContentFileName:='';
   FRequest:=TRequest.Create;
+  HTTPGetContentTypes(ContentTypeComboBox.Items);
 end;
 
 destructor TRequestForm.Destroy;
@@ -86,18 +86,17 @@ end;
 
 procedure TRequestForm.SetURL(const Value: string);
 begin
-  FURL:=Value;
   Request.Reset;
-  Request.ParseURL(URL);
-  Request.Protocol:='HTTP/1.1';
-  Request.Method:='GET';
+  Request.ParseURL(Value);
+  Request.Protocol:=PROTOCOL_HTTP11;
+  Request.Method:=METHOD_GET;
   Request.AddHeaderValue('Host',Request.Host);
+  RequestEdit.Text:=Value;
 end;
 
 function TRequestForm.Execute: Boolean;
 begin
 
-  RequestEdit.Text:=URL;
   ProtocolComboBox.Text:=FRequest.Protocol;
   ContentMemo.Clear;
   MethodComboBox.ItemIndex:=MethodComboBox.Items.IndexOf(FRequest.Method.ToUpper);
@@ -137,106 +136,20 @@ begin
 end;
 
 procedure TRequestForm.HeaderNameComboBoxChange(Sender: TObject);
-var S: string;
 begin
 
-  HeaderValueComboBox.Clear;
+  GetHeaderRequestValues(RequestEdit.Text,HeaderNameComboBox.Text,
+    HeaderValueComboBox.Items);
 
-  S:=HeaderNameComboBox.Text;
-
-  if S='Host' then
-  begin
-    HeaderValueComboBox.Items.Add(Request.Host);
-  end else
-
-  if S='Connection' then
-  begin
-    HeaderValueComboBox.Items.Add('close');
-    HeaderValueComboBox.Items.Add('keep-alive');
-    HeaderValueComboBox.Items.Add('keep-alive, Upgrade');
-    HeaderValueComboBox.Items.Add('Upgrade');
-  end else
-
-  if S='Keep-Alive' then
-  begin
-    HeaderValueComboBox.Items.Add('timeout=10');
-  end else
-
-  if S='Cookie' then
-  begin
-    HeaderValueComboBox.Items.Add('Name=Value');
-  end else
-
-  if S='User-Agent' then
-  begin
-    HeaderValueComboBox.Items.Add('Mozilla/5.0 (Windows NT 6.1; rv:61.0)');
-  end else
-
-  if S='Accept' then
-  begin
-    HeaderValueComboBox.Items.Add('*/*');
-    HeaderValueComboBox.Items.Add('text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8');
-  end else
-
-  if S='Accept-Language' then
-  begin
-    HeaderValueComboBox.Items.Add('ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3');
-  end else
-
-  if S='Accept-Encoding' then
-  begin
-    HeaderValueComboBox.Items.Add('gzip, deflate, br');
-  end else
-
-  if S='Cache-Control' then
-  begin
-    HeaderValueComboBox.Items.Add('max-age=0');
-    HeaderValueComboBox.Items.Add('no-cache');
-  end else
-
-  if S='Pragma' then
-  begin
-    HeaderValueComboBox.Items.Add('no-cache');
-  end else
-
-  if S='Upgrade' then
-  begin
-    HeaderValueComboBox.Items.Add('websocket');
-  end else
-
-  if S='If-Modified-Since' then
-  begin
-    HeaderValueComboBox.Items.Add('Fri, 15 Feb 2019 21:10:37 GMT');
-  end else
-
-  if S='Content-Type' then
-  begin
-    HeaderValueComboBox.Items.Assign(ContentTypeComboBox.Items);
-  end else
-
-  if S='Content-Length' then
-  begin
-    HeaderValueComboBox.Items.Add('0');
-  end else
-
-  if S='Upgrade-Insecure-Requests' then
-  begin
-    HeaderValueComboBox.Items.Add('1');
-  end else
-
-  if S='Authorization' then
-  begin
-    HeaderValueComboBox.Items.Add('Basic STRING_BASE64');
-  end;
-
-  if HeaderValueComboBox.Items.Count>0 then
-    HeaderValueComboBox.ItemIndex:=0;
+  HeaderValueComboBox.Text:='';
+  HeaderValueComboBox.ItemIndex:=-1;
+  HeaderValueComboBox.ItemIndex:=0;
 
 end;
 
 procedure TRequestForm.OpenFileButtonClick(Sender: TObject);
 begin
-  if OpenDialog1.Execute(Self.Handle) then
+  if OpenDialog1.Execute(Handle) then
   begin
     FContentFileName:=OpenDialog1.FileName;
     FileNameLabel.Caption:=ExtractFileName(FContentFileName);

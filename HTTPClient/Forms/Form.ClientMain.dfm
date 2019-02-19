@@ -54,9 +54,9 @@ object Form2: TForm2
       650
       30)
     object SpeedButton1: TSpeedButton
-      Left = 221
+      Left = 211
       Top = 2
-      Width = 130
+      Width = 120
       Height = 26
       GroupIndex = 1
       Caption = 'Response Content'
@@ -75,7 +75,7 @@ object Form2: TForm2
       OnClick = SpeedButton2Click
     end
     object Label2: TLabel
-      Left = 366
+      Left = 346
       Top = 9
       Width = 33
       Height = 13
@@ -93,7 +93,7 @@ object Form2: TForm2
     object SpeedButton3: TSpeedButton
       Left = 91
       Top = 2
-      Width = 130
+      Width = 120
       Height = 26
       GroupIndex = 1
       Caption = 'Request Content'

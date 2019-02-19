@@ -37,7 +37,7 @@ type
     procedure UpdateKeepAliveTimeout;
     procedure SetKeepAliveTimeout(Value: Cardinal);
     procedure SetKeepAlive(Value: Boolean);
-    procedure DoOnResponseComplete(Sender: TObject);
+    procedure OnNextRequest(Sender: TObject);
  protected
     procedure DoExcept(Code: Integer); override;
     procedure DoTimeout(Code: Integer); override;
@@ -83,12 +83,12 @@ begin
   FActive:=False;
   FResponseTimeout:=10000;
   FBuffer.Init;
-  OnResponseComplete:=DoOnResponseComplete; //обработчик по-умолчанию при завершении загрузки ресурса (переход к загрузке следующего ресурса)
+  OnResponseComplete:=OnNextRequest; //обработчик по-умолчанию при завершении загрузки ресурса (переход к загрузке следующего ресурса)
 end;
 
 destructor THTTPClient.Destroy;
 begin
-  DoMessage('client_destroy');
+  DoMessage('client-destroy');
   inherited;
 end;
 
@@ -120,6 +120,7 @@ end;
 
 procedure THTTPClient.DoConnectionClose;
 begin
+  DoMessage('client-close ('+FSocket.ToString+')');
   FActive:=False;
   FHost:='';
   Close;
@@ -130,7 +131,7 @@ procedure THTTPClient.DoResponseComplete;
 begin
   SetTimeout(0,TIMEOUT_READ);
   UpdateKeepAliveTimeout;
-  if Assigned(OnResponseComplete) then FOnResponseComplete(Self);
+  if Assigned(FOnResponseComplete) then FOnResponseComplete(Self);
 end;
 
 procedure THTTPClient.DoExcept(Code: Integer);
@@ -143,28 +144,26 @@ end;
 procedure THTTPClient.DoTimeout(Code: Integer);
 begin
   case Code of
-  TIMEOUT_KEEPALIVE: DoMessage('client_keepalive_timeout '+FSocket.ToString);
-  TIMEOUT_READ: DoMessage('client_read_timeout '+FSocket.ToString);
-  else DoMessage('client_timeout '+FSocket.ToString);
+  TIMEOUT_KEEPALIVE: DoMessage('client-keepalive-timeout ('+FSocket.ToString+')');
+  TIMEOUT_READ: DoMessage('client-read-timeout ('+FSocket.ToString+')');
+  else DoMessage('client-timeout ('+FSocket.ToString+')');
   end;
-  DoConnectionClose;
-  DoResponseComplete;
+  DoClose;
 end;
 
 procedure THTTPClient.DoOpen;
 begin
-  DoMessage('client_open '+FSocket.ToString);
+  DoMessage('client-open ('+FSocket.ToString+')');
   inherited;
 end;
 
 procedure THTTPClient.DoClose;
 begin
-  DoMessage('client_close '+FSocket.ToString);
   DoConnectionClose;
   DoResponseComplete;
 end;
 
-procedure THTTPClient.DoOnResponseComplete(Sender: TObject);
+procedure THTTPClient.OnNextRequest(Sender: TObject);
 begin
   GetNext;
   if not FActive then
@@ -173,7 +172,6 @@ end;
 
 procedure THTTPClient.DoRead;
 begin
-  SetTimeout(0,TIMEOUT_KEEPALIVE);
   while Response.DoRead(Read(20000))>0 do;
 end;
 
@@ -184,11 +182,18 @@ end;
 
 procedure THTTPClient.DoReadComplete;
 begin
+
+  Response.SetResource(Request.Resource);
+
   if Assigned(FOnResponse) then FOnResponse(Self);
+
   FActive:=False;
-  if not KeepAlive or (Response.GetHeaderValue('Connection')='close') then
-    DoConnectionClose;
-  DoResponseComplete;
+
+  if not KeepAlive or Response.ConnectionClose then
+    DoClose
+  else
+    DoResponseComplete;
+
 end;
 
 procedure THTTPClient.DoMessage(const TextMessage: string);
@@ -203,6 +208,7 @@ begin
   Write(Request.Content);
   if Assigned(FOnRequest) then FOnRequest(Self);
   SetTimeout(ResponseTimeout,TIMEOUT_READ);
+  SetTimeout(0,TIMEOUT_KEEPALIVE);
 end;
 
 procedure THTTPClient.GetNext;
@@ -212,8 +218,8 @@ begin
   begin
 
     Request.Reset;
-    Request.Protocol:='HTTP/1.1';
-    Request.Method:='GET';
+    Request.Protocol:=PROTOCOL_HTTP11;
+    Request.Method:=METHOD_GET;
     Request.ParseURL(FBuffer.Read);
     Request.AddHeaderValue('Host',Request.Host);
     Request.AddHeaderKeepAlive(KeepAlive,KeepAliveTimeout);
@@ -236,15 +242,12 @@ begin
 
   HTTPSplitHost(Request.Host,HostName,HostPort);
 
-  ProtocolUseSSL:=SameText(Request.Transport,'https');
+  ProtocolUseSSL:=SameText(Request.Transport,TRANSPORT_HTTPS);
 
   if ProtocolUseSSL then
     Port:=StrToIntDef(HostPort,HTTPS_PORT)
   else
     Port:=StrToIntDef(HostPort,HTTP_PORT);
-
-  Response.ResourceName:=HTTPDecodeResourceName(HTTPExtractResourceName(Request.Resource));
-  Response.LocalResource:=HTTPResourceToLocal(Request.Resource);
 
   if Assigned(FOnResource) then FOnResource(Self);
 

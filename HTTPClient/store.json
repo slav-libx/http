@@ -1,16 +1,16 @@
 {
   "form": {
     "rect": {
-      "right": 993,
-      "left": 211,
-      "top": 83,
-      "bottom": 717
+      "right": 892,
+      "left": 110,
+      "top": 36,
+      "bottom": 718
     }
   },
-  "url-edit": "http:\/\/pics2.pokazuha.ru\/p217\/l\/s\/9844720fsl.jpg",
+  "url-edit": "https:\/\/pp.userapi.com\/c849524\/v849524473\/112ecc\/-SNgaJ3hgyE.jpg",
   "local-storage": "D:\\Public\\",
   "keep-alive": {
-    "timeout": 5,
+    "timeout": 10,
     "enabled": 1
   },
   "urls": [
@@ -46,7 +46,8 @@
     "http:\/\/localhost\/Addisonian.json",
     "https:\/\/dictionary.yandex.net\/dicservice.json\/queryCorpus?ui=ru&srv=tr-text&sid=c8441aba.5c69ab43.59fe702e&src=\u0441\u043B\u043E\u043D&dst=&lang=ru-en&flags=39&maxlen=200",
     "https:\/\/accounts.google.com\/_\/common\/diagnostics\/?diagnostics=[[[\"gaia_fe_minutemaid:ss\",null,null,null,1550430815499]]]&rt=j",
-    "https:\/\/connect.mail.ru\/oauth\/token"
+    "https:\/\/connect.mail.ru\/oauth\/token",
+    "https:\/\/pp.userapi.com\/c852224\/v852224471\/97177\/cLJi6guR86k.jpg"
   ],
   "arr": [0,5,9,2,45,3],
   "arr2": [],

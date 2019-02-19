@@ -1,0 +1,780 @@
+{
+  "version": "0.5.02",
+  "scenario_info": {
+    "name": {
+      "en": "Addisonian Crisis "
+    },
+    "description": {
+      "en": "Addisonian crisis (adrenal crisis) is a potentially life-threatening condition that results from an acute insufficiency of hormone cortisol and requires immediate treatment. Crisis occurs when the physiological demand for this hormone exceeds the ability of adrenal glands to produce it. Addisonian crisis usually occurs in patients with chronic adrenal insufficiency when they are subjected to illness or stress: infections (their symptoms include vomiting and/or diarrhoea due to a gastrointestinal upset), injury, surgery, burns, pregnancy, general anaesthesia, myocardial infarction, acute allergic reactions, acute hypoglycaemia in people with diabetes. Addisonian crisis may cause death by circulatory collapse and arrhythmias."
+    },
+    "type": "Standard clinical scenarios",
+    "patient_data": {
+      "patient_type": 1,
+      "name": "Henry",
+      "age": 47,
+      "gender": "male",
+      "height": 172,
+      "weight": 68,
+      "photo": "face\\Round\\user 34.png",
+      "case_history": "The man caght a cold. He reguraly takes the steroid drugs for the rheumatoid arthritis. However, today he has forgotten to take the tablets. The patient complains of fatigue, malaise, rash, joint pains, nausea/vomiting, chest pain, palpitations, shortness of breath, abdominal pain.\r\n",
+      "learning_objectives": [
+        "Teach student to treat a patient with addisonian crisis.\r\n1) To determine the symptoms of addisonian crisis.\r\n2) To understand how to differentiate this condition from other pathologies with similar symptoms.\r\n3) To understand which therapeutic approach should be applied depending on the stage of the pathological process, age of the patient and laboratory test values.\r\n4) To determine the prognosis during treatment, whic ambulatory treatment approach should be applied and how to prevent a recurrent cases of addisonian crisis."
+      ],
+      "anamnesis": [
+        {
+          "name": "Symptoms",
+          "type": "text",
+          "content": "During addisonian crisis patients may be in a state of shock (high heart rate, vasoconstriction, postural hypotension, oliguria, fatigue, depressed state). Often, but not always, this pathology occurs in patients with known Addison's disease (for instance, when the amount of steroids used has not been increased to cover such diseases as pneumonia) or in patients taking long-term steroids who has forgotten to take the tablets. Bilateral adrenal haemorrhage (e.g., meningococcaemia) also should be considered as a cause of addisonian crisis.\r\n\r\nPrecipitating factors of addisonian crisis include: infection, trauma, surgery, missed use of the medications. If addisonian crisis is suspected, treat it before the results of biochemical tests are avaliable."
+        },
+        {
+          "name": "MRI/CT",
+          "type": "text",
+          "content": "- MRI is optional, as a differential diagnostics in the case of a comatose patient.\r\n\r\n- Routine holding abdominal CT, search for damage of adrenal glands (tuberculosis, calcification, tumor metastasis, etc)."
+        },
+        {
+          "name": "Laboratory analysis",
+          "type": "text",
+          "content": "- Cortisol and adrenocorticotropic hormone;\r\n- Elevated potassium levels, decreased sodium levels;\r\n- Decreased glucose levels;\r\n- Blood test;\r\n- Urine and sputum for microorganisms."
+        },
+        {
+          "name": "Treatment",
+          "type": "text",
+          "content": "- Perform blood tests for cortisol and adrenocorticotropic hormone (ACTH) (blood should be delivered straight to the laboratory). Measure concentrations of urea and electrolytes (U&E) in blood - high concentration of [K+] (in this case obtain the ECG and give calcium gluconate to the patient) and low concentration of [Na+] (this is the salt depletion, which should be resolved by rehydration and by administration of steroids) may be observed.  \r\n- Intravenously inject 100 mg of hydrocortisone.\r\n- Intravenously inject bolus of crystalloid or colloid fluids to support blood pressure.  \r\n- Monitor the level of blood glucose because there is the danger of hypoglycaemia.  \r\n- Perform blood, urine and sputum culture tests. If there is a concern about infection, give antibiotics to the patient.\r\n- If the patient has hypoglycaemia, inject glucose intravenously.  \r\n- Inject \ufb02uids intravenously, as guided by the clinical state of the patient, to correct U&E imbalance.  \r\n- Continue intravenous or intramuscular injection of hydrocortisone in a dose of 100mg/8hour.  \r\n- Change injection of hydrocortisone to the peroral administration of steroids after 72 hours if patient\u2019s condition is getting better. Conduction of tetracosactrin (=tetracosactide) test is impossible while the patient uses hydrocortisone.  \r\n- If the cause of addisonian crisis is adrenal disease, give fludrocortisone to the patient.  "
+        },
+        {
+          "name": "Calcification of adrenal gland on CT",
+          "type": "image",
+          "content": "806694c8-ac13-431a-bb5a-d84b46200fa4.JPG"
+        },
+        {
+          "name": "123",
+          "type": "video",
+          "content": "123.mp4"
+        },
+        {
+          "name": "X-ray of adrenal glands calcification",
+          "type": "image",
+          "content": "67264088-99bd-4007-b4c6-575b48df5591.jpg"
+        }
+      ]
+    }
+  },
+  "creator_info": {
+    "app": {
+      "modules": {
+        "main": "0.9.20.9",
+        "json": "0.9.20.0"
+      }
+    },
+    "date": "2018-02-06T12:49:39.5885946+03:00"
+  },
+  "states": [
+    {
+      "id": 1,
+      "name": {
+        "en": "Initial state of a patient with addisonian crisis"
+      },
+      "description": {
+        "en": "Fatigue, malaise, rash, joint pains, nausea/vomiting, chest pain, palpitations, shortness of breath, abdominal pain, hypotension. "
+      },
+      "heart": {
+        "rate": 107,
+        "power": 34,
+        "type": 2,
+        "ecg_params": "synhy:HR=107,HD=1,ART=0"
+      },
+      "breath": {
+        "rate": 30,
+        "lung": [
+          1,
+          1
+        ]
+      },
+      "pupil": {
+        "diameter": [
+          8,
+          8
+        ],
+        "reflex": [
+          1,
+          1
+        ]
+      },
+      "blinking": {
+        "rate": 30,
+        "level": 100
+      },
+      "eyelids": [
+        100,
+        100
+      ],
+      "overlap": [
+        0,
+        0
+      ],
+      "pneumothorax": [
+        0,
+        0
+      ],
+      "blood": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cyanosis": {
+        "limb": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "head": 0
+      },
+      "convulsions": 0,
+      "trism": 0,
+      "forehead": 0,
+      "laryngeal_edema": 0,
+      "co2_exhale": 0,
+      "tongue": 0,
+      "spasm_glottis": 0,
+      "ears": 0,
+      "mouth": 0,
+      "nose": 0,
+      "eyes": 0,
+      "urination": 0,
+      "auscultation": [
+        {
+          "point_id": 0,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 3
+        },
+        {
+          "point_id": 1,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 3
+        },
+        {
+          "point_id": 2,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 3
+        },
+        {
+          "point_id": 3,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 3
+        },
+        {
+          "point_id": 4,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 3
+        },
+        {
+          "point_id": 5,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 6,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 7,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 8,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 9,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 10,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 11,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 12,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 13,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 14,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 15,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 16,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 17,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 0
+        },
+        {
+          "point_id": 18,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 0
+        },
+        {
+          "point_id": 19,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 0
+        },
+        {
+          "point_id": 20,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 0
+        },
+        {
+          "point_id": 21,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 22,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 23,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 24,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 25,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 26,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 27,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 28,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 29,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 30,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 31,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 32,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 33,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 34,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 35,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 36,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        }
+      ],
+      "korotkoff_volume": 50,
+      "speech": 0,
+      "t_body": 36.6,
+      "t_blood": 37.1,
+      "etco2": 34,
+      "spo2": 96,
+      "pressure": [
+        80,
+        60
+      ],
+      "secondary_params": {},
+      "top": 7.5,
+      "left": 187.5
+    },
+    {
+      "id": 2,
+      "name": {
+        "en": "After treatment"
+      },
+      "description": {
+        "en": "Normal condition."
+      },
+      "heart": {
+        "rate": 70,
+        "power": 50,
+        "type": 1,
+        "ecg_params": "sin:HR=70,ES=0,ESF=1,ART=0"
+      },
+      "breath": {
+        "rate": 12,
+        "lung": [
+          1,
+          1
+        ]
+      },
+      "pupil": {
+        "diameter": [
+          8,
+          8
+        ],
+        "reflex": [
+          1,
+          1
+        ]
+      },
+      "blinking": {
+        "rate": 30,
+        "level": 100
+      },
+      "eyelids": [
+        100,
+        100
+      ],
+      "overlap": [
+        0,
+        0
+      ],
+      "pneumothorax": [
+        0,
+        0
+      ],
+      "blood": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cyanosis": {
+        "limb": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "head": 0
+      },
+      "convulsions": 0,
+      "trism": 0,
+      "forehead": 0,
+      "laryngeal_edema": 0,
+      "co2_exhale": 0,
+      "tongue": 0,
+      "spasm_glottis": 0,
+      "ears": 0,
+      "mouth": 0,
+      "nose": 0,
+      "eyes": 0,
+      "urination": 0,
+      "auscultation": [
+        {
+          "point_id": 0,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 1
+        },
+        {
+          "point_id": 1,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 1
+        },
+        {
+          "point_id": 2,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 1
+        },
+        {
+          "point_id": 3,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 1
+        },
+        {
+          "point_id": 4,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 1
+        },
+        {
+          "point_id": 5,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 6,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 7,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 8,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 9,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 10,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 11,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 12,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 13,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 14,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 15,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 16,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 17,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 0
+        },
+        {
+          "point_id": 18,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 0
+        },
+        {
+          "point_id": 19,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 0
+        },
+        {
+          "point_id": 20,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 0
+        },
+        {
+          "point_id": 21,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 22,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 23,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 24,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 25,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 26,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 27,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 28,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 29,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 30,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 31,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 32,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 33,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 34,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 35,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        },
+        {
+          "point_id": 36,
+          "volume": 50,
+          "type": 1,
+          "sound_id": 12
+        }
+      ],
+      "korotkoff_volume": 50,
+      "speech": 0,
+      "t_body": 36.6,
+      "t_blood": 37.1,
+      "etco2": 34,
+      "spo2": 98,
+      "pressure": [
+        120,
+        80
+      ],
+      "secondary_params": {},
+      "top": 37.5,
+      "left": 757.5
+    }
+  ],
+  "triggers": [
+    {
+      "id": 1,
+      "name": {
+        "en": "Treatment",
+        "ru": "Treatment",
+        "de": "Treatment"
+      },
+      "actions": [
+        {
+          "id": 1,
+          "action": 229,
+          "name": {
+            "en": "The drug is administered"
+          },
+          "text": {
+            "en": null
+          },
+          "description": "Calcium Gluconate 10% :(Amount:20 \u00b12)",
+          "is_user_action": 0,
+          "delay": 0,
+          "atype_id": 4,
+          "input_drug": {
+            "drug_id": 100,
+            "route": 1,
+            "amount": 20.0,
+            "dose": 0.0,
+            "tolerance": 2.0
+          }
+        },
+        {
+          "id": 2,
+          "action": 770,
+          "name": {
+            "en": "Administer 10 IU of Insulin"
+          },
+          "text": {
+            "en": null
+          },
+          "description": "Administer 10 IU of Insulin",
+          "is_user_action": 1,
+          "delay": 0,
+          "atype_id": 0,
+          "manual": 1
+        },
+        {
+          "id": 3,
+          "action": 229,
+          "name": {
+            "en": "The drug is administered"
+          },
+          "text": {
+            "en": null
+          },
+          "description": "Hydrocortisone :(Amount:4 \u00b11)",
+          "is_user_action": 0,
+          "delay": 0,
+          "atype_id": 4,
+          "input_drug": {
+            "drug_id": 106,
+            "route": 1,
+            "amount": 4.0,
+            "dose": 0.0,
+            "tolerance": 1.0
+          }
+        }
+      ]
+    }
+  ],
+  "depends": [
+    {
+      "id": 1,
+      "state_begin": 1,
+      "state_end": 2,
+      "trigger": 1,
+      "top": 52.5,
+      "left": 502.5
+    }
+  ]
+}
