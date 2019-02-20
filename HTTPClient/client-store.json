@@ -1,17 +1,17 @@
 {
   "form": {
     "bounds": {
-      "right": 821,
-      "left": 161,
-      "top": 75,
-      "bottom": 696
+      "right": 935,
+      "left": 275,
+      "top": 62,
+      "bottom": 683
     }
   },
-  "url-edit": "https:\/\/pp.userapi.com\/c849524\/v849524473\/112ecc\/-SNgaJ3hgyE.jpg",
+  "url-edit": "https:\/\/imgprx.livejournal.net\/e88871e8e42ac62e989b756c40e3e08619e9e040\/4TobPEdgCR9R0lPBdRC2phcbkf3iGqHcNw4erxVoR5WS19dTCWpVgDX6w7CnRK-dLtoTAimspxn2MB3elz9Qi-BesK0Zcwrx7v-cuj4KhvBWNxGDugYC-WdQ7kaFTSQH6O8mDHP9H1jRbWoh0u_U9g",
   "local-storage": "D:\\Public\\",
   "keep-alive": {
     "timeout": 10,
-    "enabled": 1
+    "enabled": 0
   },
   "urls": [
     "http:\/\/cs10.pikabu.ru\/post_img\/2018\/07\/21\/12\/1532205231113432966.jpg",
@@ -47,7 +47,11 @@
     "https:\/\/dictionary.yandex.net\/dicservice.json\/queryCorpus?ui=ru&srv=tr-text&sid=c8441aba.5c69ab43.59fe702e&src=\u0441\u043B\u043E\u043D&dst=&lang=ru-en&flags=39&maxlen=200",
     "https:\/\/accounts.google.com\/_\/common\/diagnostics\/?diagnostics=[[[\"gaia_fe_minutemaid:ss\",null,null,null,1550430815499]]]&rt=j",
     "https:\/\/connect.mail.ru\/oauth\/token",
-    "https:\/\/pp.userapi.com\/c852224\/v852224471\/97177\/cLJi6guR86k.jpg"
+    "https:\/\/pp.userapi.com\/c852224\/v852224471\/97177\/cLJi6guR86k.jpg",
+    "https:\/\/imgprx.livejournal.net\/21dd4f57338a7eb9a168d3c1fe8005b95c988694\/4TobPEdgCR9R0lPBdRC2phcbkf3iGqHcNw4erxVoR5WS19dTCWpVgDX6w7CnRK-dLtoTAimspxn2MB3elz9Qi-BesK0Zcwrx7v-cuj4KhvBWNxGDugYC-WdQ7kaFTSQHrUwLkBawewmnyfU_-lT52w",
+    "https:\/\/imgprx.livejournal.net\/dcce4e53e6a4ff481bf8a97cdf8d2b88cc2de267\/4TobPEdgCR9R0lPBdRC2phcbkf3iGqHcNw4erxVoR5WS19dTCWpVgDX6w7CnRK-dLtoTAimspxn2MB3elz9Qi-BesK0Zcwrx7v-cuj4KhvBWNxGDugYC-WdQ7kaFTSQHEwwkhY1lVQhyiSWhyN7GLw",
+    "https:\/\/imgprx.livejournal.net\/d2f1ad59bc2a35d6b197741ebe87a412841c2769\/4TobPEdgCR9R0lPBdRC2phcbkf3iGqHcNw4erxVoR5WS19dTCWpVgDX6w7CnRK-dLtoTAimspxn2MB3elz9Qi-BesK0Zcwrx7v-cuj4KhvBWNxGDugYC-WdQ7kaFTSQHDp-O9-NTjVyq27SfQOof-A",
+    "https:\/\/imgprx.livejournal.net\/e88871e8e42ac62e989b756c40e3e08619e9e040\/4TobPEdgCR9R0lPBdRC2phcbkf3iGqHcNw4erxVoR5WS19dTCWpVgDX6w7CnRK-dLtoTAimspxn2MB3elz9Qi-BesK0Zcwrx7v-cuj4KhvBWNxGDugYC-WdQ7kaFTSQH6O8mDHP9H1jRbWoh0u_U9g"
   ],
   "arr": [0,5,9,2,45,3],
   "arr2": [],

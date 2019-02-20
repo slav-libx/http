@@ -1,30 +1,30 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>1899.12.30 00:00:00.000.107,C:\Users\USER\Documents\Embarcadero\Studio\Projects\Unit2.dfm=D:\eidos\HTTP\HTTPClient\Form.ClientMain.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.525,D:\eidos\HTTP\HTTPClient\Form.Request.pas=D:\eidos\HTTP\HTTPClient\Forms\Form.Request.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.154,D:\eidos\HTTP\HTTPClient\Form.Request.pas=D:\eidos\HTTP\HTTPClient\Form.Reques.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.154,D:\eidos\HTTP\HTTPClient\Form.Request.dfm=D:\eidos\HTTP\HTTPClient\Form.Reques.dfm</Transaction>
     <Transaction>1899.12.30 00:00:00.000.898,=D:\eidos\HTTP\HTTPClient\Unit2.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.154,D:\eidos\HTTP\HTTPClient\Form.Request.pas=D:\eidos\HTTP\HTTPClient\Form.Reques.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.161,=D:\eidos\HTTP\HTTPClient\Unit2.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.525,D:\eidos\HTTP\HTTPClient\Form.Request.dfm=D:\eidos\HTTP\HTTPClient\Forms\Form.Request.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.107,C:\Users\USER\Documents\Embarcadero\Studio\Projects\Unit2.dfm=D:\eidos\HTTP\HTTPClient\Form.ClientMain.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.208,C:\Users\USER\Documents\Embarcadero\Studio\Projects\Project2.dproj=D:\eidos\HTTP\HTTPClient\httpclient.dproj</Transaction>
     <Transaction>1899.12.30 00:00:00.000.112,=D:\nmail\about.txt</Transaction>
     <Transaction>1899.12.30 00:00:00.000.755,D:\nmail\about.txt=</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.208,C:\Users\USER\Documents\Embarcadero\Studio\Projects\Project2.dproj=D:\eidos\HTTP\HTTPClient\httpclient.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.525,D:\eidos\HTTP\HTTPClient\Form.Request.dfm=D:\eidos\HTTP\HTTPClient\Forms\Form.Request.dfm</Transaction>
     <Transaction>1899.12.30 00:00:00.000.320,D:\eidos\HTTP\HTTPClient\Units\Lib.HeaderValues.pas=D:\eidos\HTTP\HTTPClient\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.523,D:\eidos\HTTP\lib\Lib.JSON.Store.pas=D:\eidos\HTTP\lib\Lib.Store.JSON.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.525,D:\eidos\HTTP\HTTPClient\Form.Request.pas=D:\eidos\HTTP\HTTPClient\Forms\Form.Request.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.743,D:\eidos\HTTP\HTTPClient\client-store.json=</Transaction>
     <Transaction>1899.12.30 00:00:00.000.479,D:\eidos\HTTP\lib\Lib.HTTPContent.pas=</Transaction>
     <Transaction>1899.12.30 00:00:00.000.859,=D:\eidos\HTTP\lib\Lib.HTTPContent.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.390,D:\eidos\HTTP\lib\Lib.Store.JSON.pas=D:\eidos\HTTP\HTTPClient\Unit2.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.873,D:\eidos\HTTP\lib\Lib.JSON.Format.pas=D:\eidos\HTTP\HTTPClient\Unit2.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.983,=D:\eidos\HTTP\lib\Lib.HTTPClient.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.261,=D:\eidos\HTTP\HTTPClient\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.219,=D:\eidos\HTTP\HTTPClient\Form.Reques.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.107,C:\Users\USER\Documents\Embarcadero\Studio\Projects\Unit2.pas=D:\eidos\HTTP\HTTPClient\Form.ClientMain.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.742,=C:\Users\USER\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.961,D:\eidos\HTTP\HTTPClient\Form.ClientMain.pas=D:\eidos\HTTP\HTTPClient\Forms\Form.ClientMain.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.885,=D:\eidos\HTTP\HTTPClient\client-store.json</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.219,=D:\eidos\HTTP\HTTPClient\Form.Reques.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.961,D:\eidos\HTTP\HTTPClient\Form.ClientMain.dfm=D:\eidos\HTTP\HTTPClient\Forms\Form.ClientMain.dfm</Transaction>
-    <Transaction>2019.02.20 04:48:51.885,=D:\eidos\HTTP\HTTPClient\client-store.json</Transaction>
-    <Transaction>2019.02.20 04:49:18.743,D:\eidos\HTTP\HTTPClient\client-store.json=</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.742,=C:\Users\USER\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
   </Transactions>
 </BorlandProject>
