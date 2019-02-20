@@ -1,4 +1,5 @@
-HTTPClient/Win32/
-HTTPServer/Win32/
+#HTTPClient/Win32/
+#HTTPServer/Win32/
+*.dcu
 *.exe
 .gitignore

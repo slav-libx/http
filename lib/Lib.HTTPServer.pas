@@ -132,16 +132,16 @@ var
   ClientKeepAlive: Boolean;
 begin
 
-  if Request.Protocol='HTTP/1.1' then
+  if Request.Protocol=PROTOCOL_HTTP11 then
   begin
 
     ClientKeepAlive:=SameText(Request.GetHeaderValue('Connection'),'keep-alive');
 
     Response.Reset;
-    Response.Protocol:='HTTP/1.1';
+    Response.Protocol:=PROTOCOL_HTTP11;
     Response.AddHeaderKeepAlive(ClientKeepAlive,KeepAliveTimeout);
 
-    if Request.Method='GET' then
+    if Request.Method=METHOD_GET then
     begin
 
       FileName:=HTTPResourceToLocalFileName(Request.Resource,FHome,FAliases);
@@ -149,7 +149,7 @@ begin
       if FileExists(FileName) then
       begin
 
-        Response.SetResult(200,'OK');
+        Response.SetResult(HTTP_SUCCESS,'OK');
 
         Response.AddContentFile(FileName);
 
