@@ -82,7 +82,6 @@ type
 implementation
 
 const
-
   TIMEOUT_KEEPALIVE=1;
 
 { THTTPServerClient }
