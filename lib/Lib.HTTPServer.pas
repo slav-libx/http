@@ -132,7 +132,7 @@ var
   ClientKeepAlive: Boolean;
 begin
 
-  if Request.Protocol='HTTP/1.1' then
+  if Request.Protocol=PROTOCOL_HTTP11 then
   begin
 
     ClientKeepAlive:=SameText(Request.GetHeaderValue('Connection'),'keep-alive');
