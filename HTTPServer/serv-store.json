@@ -1,10 +1,10 @@
 {
   "form": {
-    "rect": {
-      "left": 244,
-      "top": 82,
-      "right": 779,
-      "bottom": 655
+    "bounds": {
+      "left": 218,
+      "top": 120,
+      "right": 805,
+      "bottom": 618
     }
   },
   "host": "",
