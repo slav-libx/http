@@ -96,7 +96,7 @@ implementation
 procedure TForm2.FormCreate(Sender: TObject);
 begin
 
-  FStore:=TJSONStore.Create(ExtractFilePath(ParamStr(0))+'store.json');
+  FStore:=TJSONStore.Create(ExtractFilePath(ParamStr(0))+'client-store.json');
 
   BoundsRect:=FStore.ReadRect('form.bounds',BoundsRect);
   Edit1.Text:=FStore.ReadString('url-edit');

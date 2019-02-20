@@ -93,9 +93,9 @@ WelcomePageURL=bds:/default.htm
 [View1]
 CustomEditViewType=TEditView
 Module=D:\eidos\HTTP\HTTPServer\Forms\Form.ServerMain.pas
-CursorX=31
-CursorY=177
-TopLine=4
+CursorX=34
+CursorY=105
+TopLine=72
 LeftCol=1
 Elisions=
 Bookmarks=
@@ -203,14 +203,16 @@ PercentageSizes=1
 Create=1
 Visible=1
 Docked=0
-State=0
+State=2
 Left=0
 Top=0
 Width=10000
 Height=1938
 MaxLeft=-10
 MaxTop=-14
-ClientWidth=9902
+MaxWidth=10000
+MaxHeight=1938
+ClientWidth=10000
 ClientHeight=1531
 BottomPanelSize=0
 
@@ -699,7 +701,7 @@ Dockable=1
 StayOnTop=0
 TabPosition=1
 ActiveTabID=RefactoringForm
-TabDockClients=RefactoringForm,FindReferencsForm,MetricsView,QAView
+TabDockClients=RefactoringForm,FindReferencsForm,QAView,MetricsView
 
 [DockSite1]
 DockSiteType=1
