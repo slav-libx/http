@@ -76,11 +76,11 @@ type
     procedure Close; override;
   public
 //    function WaitForRead(WaitTime: Integer): Boolean;
-    function ConnectTo(Host: string; Port: Integer): Boolean;
+    function ConnectTo(const Host: string; Port: Integer): Boolean;
     function ReadString(Encoding: TEncoding = nil): string;
     function ReadBuf(var Buffer; Count: Integer): Integer;
     function Read(MaxBuffSize: Integer=10240): TBytes;
-    procedure WriteString(S: string; Encoding: TEncoding = nil);
+    procedure WriteString(const S: string; Encoding: TEncoding = nil);
     procedure WriteBuf(var Buffer; Count: Integer);
     procedure Write(B: TBytes);
     constructor Create; override;
@@ -98,7 +98,7 @@ type
   protected
     procedure DoEvent(EventCode: Word); override;
   public
-    procedure Start(Host: string; Port: Integer);
+    procedure Start(const Host: string; Port: Integer);
     procedure Stop;
     function AcceptClient: TSocket;
   public
@@ -110,7 +110,7 @@ implementation
 var
   WSAData: TWSAData;
 
-function host_isip(Host: string): Boolean;
+function host_isip(const Host: string): Boolean;
 begin
   case inet_addr(PAnsiChar(AnsiString(Host))) of
   INADDR_NONE,0: Result:=False;
@@ -119,7 +119,7 @@ begin
   end;
 end;
 
-function host_ipfromname(Name: string): string;
+function host_ipfromname(const Name: string): string;
 var
   H: PHostEnt;
 begin
@@ -130,7 +130,7 @@ begin
     Result:=inet_ntoa(PInAddr(H^.h_addr_list^)^);
 end;
 
-procedure sock_addr_iptoinaddr(IP: string; var InAddr: TInAddr);
+procedure sock_addr_iptoinaddr(const IP: string; var InAddr: TInAddr);
 var Octets: TArray<string>;
 begin
   Octets:=IP.Split(['.']);
@@ -296,15 +296,16 @@ begin
   StartEvents(FD_READ or FD_CLOSE);
 end;
 
-function TTCPClient.ConnectTo(Host: string; Port: Integer): Boolean;
-var R: Integer; s: string;
+function TTCPClient.ConnectTo(const Host: string; Port: Integer): Boolean;
+var R: Integer; IP: string;
 begin
   Result:=False;
   FForceClose:=True;
   FSocket:=socket(2,1,0);
-  if not host_isip(Host) then
-    Host:=host_ipfromname(Host);
-  sock_addr_iptoinaddr(Host,FAdIn.sin_addr);
+  IP:=Host;
+  if not host_isip(IP) then
+    IP:=host_ipfromname(Host);
+  sock_addr_iptoinaddr(IP,FAdIn.sin_addr);
   FAdIn.sin_family:=2;
   FAdIn.sin_port:=htons(Port);
   R:=connect(FSocket,TSockAddr(FAdIn),SizeOf(TSockAddr));
@@ -416,7 +417,7 @@ begin
   WriteBuf(B,Length(B));
 end;
 
-procedure TTCPClient.WriteString(S: string; Encoding: TEncoding = nil);
+procedure TTCPClient.WriteString(const S: string; Encoding: TEncoding = nil);
 begin
   if Encoding=nil then
     Write(TEncoding.Default.GetBytes(S))
@@ -433,15 +434,17 @@ begin
   if (EventCode=FD_ACCEPT) and Assigned(FOnAccept) then FOnAccept(Self);
 end;
 
-procedure TTCPServer.Start(Host: string; Port: Integer);
+procedure TTCPServer.Start(const Host: string; Port: Integer);
+var IP: string;
 begin
   FForceClose:=True;
   FSocket:=socket(2,1,0);
   FillChar(FAdIn,SizeOf(FAdIn),0);
   if Host<>'' then begin
-    if not host_isip(Host) then
-      Host:=host_ipfromname(Host);
-    sock_addr_iptoinaddr(Host,FAdIn.sin_addr);
+    IP:=Host;
+    if not host_isip(IP) then
+      IP:=host_ipfromname(IP);
+    sock_addr_iptoinaddr(IP,FAdIn.sin_addr);
   end;
   FAdIn.sin_family:=2;
   FAdIn.sin_port:=htons(Port);

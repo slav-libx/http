@@ -98,7 +98,7 @@ begin
 
   FStore:=TJSONStore.Create(ExtractFilePath(ParamStr(0))+'store.json');
 
-  BoundsRect:=FStore.ReadRect('form.rect',BoundsRect);
+  BoundsRect:=FStore.ReadRect('form.bounds',BoundsRect);
   Edit1.Text:=FStore.ReadString('url-edit');
   Edit3.Text:=FStore.ReadString('local-storage','');
   Edit2.Text:=FStore.ReadInteger('keep-alive.timeout',10).ToString;
@@ -117,7 +117,7 @@ procedure TForm2.FormDestroy(Sender: TObject);
 begin
 
   if WindowState=TWindowState.wsNormal then
-    FStore.WriteRect('form.rect',BoundsRect);
+    FStore.WriteRect('form.bounds',BoundsRect);
   FStore.WriteString('url-edit',Edit1.Text);
   FStore.WriteString('local-storage',Edit3.Text);
   FStore.WriteInteger('keep-alive.timeout',StrToIntDef(Edit2.Text,10));

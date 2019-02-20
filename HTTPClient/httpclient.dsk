@@ -1,44 +1,36 @@
 ﻿[Closed Files]
-File_0=TSourceModule,'D:\nmail\about.txt',0,1,1,34,7,0,0,,
-File_1=TSourceModule,'D:\nmail\index.txt',0,1,1,1,1,0,0,,
-File_2=TSourceModule,'c:\program files\embarcadero\studio\16.0\source\rtl\win\Winapi.Windows.pas',0,1,24825,23,24837,0,0,,
-File_3=TSourceModule,'c:\program files\embarcadero\studio\16.0\SOURCE\VCL\Vcl.Imaging.jpeg.pas',0,1,817,1,832,0,0,,
-File_4=TSourceModule,'c:\program files\embarcadero\studio\16.0\SOURCE\VCL\Vcl.Controls.pas',0,1,7347,1,7362,0,0,,
+File_0=TSourceModule,'c:\program files\embarcadero\studio\16.0\SOURCE\RTL\SYS\System.pas',0,1,24414,1,24429,0,0,,
+File_1=TSourceModule,'D:\nmail\about.txt',0,1,1,34,7,0,0,,
+File_2=TSourceModule,'D:\nmail\index.txt',0,1,1,1,1,0,0,,
+File_3=TSourceModule,'c:\program files\embarcadero\studio\16.0\source\rtl\win\Winapi.Windows.pas',0,1,24825,23,24837,0,0,,
+File_4=TSourceModule,'c:\program files\embarcadero\studio\16.0\SOURCE\VCL\Vcl.Imaging.jpeg.pas',0,1,817,1,832,0,0,,
 
 [Modules]
-Module0=D:\eidos\HTTP\lib\Lib.HTTPClient.pas
-Module1=D:\eidos\HTTP\HTTPClient\Units\Lib.HeaderValues.pas
-Module2=D:\eidos\HTTP\HTTPClient\httpclient.dproj
-Module3=D:\eidos\HTTP\lib\Lib.HTTPUtils.pas
-Module4=D:\eidos\HTTP\HTTPClient\Forms\Form.ClientMain.pas
-Module5=D:\eidos\HTTP\HTTPClient\Forms\Form.Request.pas
-Module6=D:\eidos\HTTP\lib\Lib.TCPSocket.pas
-Module7=c:\program files\embarcadero\studio\16.0\SOURCE\RTL\SYS\System.SysUtils.pas
-Module8=D:\eidos\HTTP\lib\Lib.HTTPContent.pas
-Module9=D:\eidos\HTTP\lib\Lib.HTTPConsts.pas
-Module10=c:\program files\embarcadero\studio\16.0\source\rtl\common\System.StrUtils.pas
-Module11=D:\eidos\HTTP\lib\Lib.HTTPSocket.pas
-Module12=D:\eidos\HTTP\lib\Lib.JSON.Format.pas
-Module13=D:\eidos\HTTP\lib\Lib.HTTPServer.pas
-Module14=D:\eidos\HTTP\lib\Lib.JSON.Store.pas
-Module15=default.htm
+Module0=D:\eidos\HTTP\lib\Lib.JSON.Store.pas
+Module1=D:\eidos\HTTP\lib\Lib.TCPSocket.pas
+Module2=D:\eidos\HTTP\HTTPClient\Forms\Form.ClientMain.pas
+Module3=D:\eidos\HTTP\HTTPClient\Forms\Form.Request.pas
+Module4=default.htm
+Module5=D:\eidos\HTTP\HTTPClient\httpclient.dproj
+Module6=D:\eidos\HTTP\lib\Lib.HTTPClient.pas
+Module7=D:\eidos\HTTP\lib\Lib.HTTPConsts.pas
+Module8=D:\eidos\HTTP\HTTPClient\Units\Lib.HeaderValues.pas
+Module9=D:\eidos\HTTP\lib\Lib.HTTPUtils.pas
+Module10=c:\program files\embarcadero\studio\16.0\SOURCE\RTL\SYS\System.SysUtils.pas
+Module11=D:\eidos\HTTP\lib\Lib.HTTPContent.pas
+Module12=c:\program files\embarcadero\studio\16.0\source\rtl\common\System.StrUtils.pas
+Module13=D:\eidos\HTTP\lib\Lib.HTTPSocket.pas
+Module14=D:\eidos\HTTP\lib\Lib.JSON.Format.pas
+Module15=D:\eidos\HTTP\lib\Lib.HTTPServer.pas
 Count=16
 EditWindowCount=1
 
-[D:\eidos\HTTP\lib\Lib.HTTPClient.pas]
+[D:\eidos\HTTP\lib\Lib.JSON.Store.pas]
 ModuleType=TSourceModule
 FormState=0
 FormOnTop=0
 
-[D:\eidos\HTTP\HTTPClient\Units\Lib.HeaderValues.pas]
-ModuleType=TSourceModule
-FormState=0
-FormOnTop=0
-
-[D:\eidos\HTTP\HTTPClient\httpclient.dproj]
-ModuleType=TBaseProject
-
-[D:\eidos\HTTP\lib\Lib.HTTPUtils.pas]
+[D:\eidos\HTTP\lib\Lib.TCPSocket.pas]
 ModuleType=TSourceModule
 FormState=0
 FormOnTop=0
@@ -53,7 +45,28 @@ ModuleType=TSourceModule
 FormState=1
 FormOnTop=0
 
-[D:\eidos\HTTP\lib\Lib.TCPSocket.pas]
+[default.htm]
+ModuleType=TURLModule
+
+[D:\eidos\HTTP\HTTPClient\httpclient.dproj]
+ModuleType=TBaseProject
+
+[D:\eidos\HTTP\lib\Lib.HTTPClient.pas]
+ModuleType=TSourceModule
+FormState=0
+FormOnTop=0
+
+[D:\eidos\HTTP\lib\Lib.HTTPConsts.pas]
+ModuleType=TSourceModule
+FormState=0
+FormOnTop=0
+
+[D:\eidos\HTTP\HTTPClient\Units\Lib.HeaderValues.pas]
+ModuleType=TSourceModule
+FormState=0
+FormOnTop=0
+
+[D:\eidos\HTTP\lib\Lib.HTTPUtils.pas]
 ModuleType=TSourceModule
 FormState=0
 FormOnTop=0
@@ -64,11 +77,6 @@ FormState=0
 FormOnTop=0
 
 [D:\eidos\HTTP\lib\Lib.HTTPContent.pas]
-ModuleType=TSourceModule
-FormState=0
-FormOnTop=0
-
-[D:\eidos\HTTP\lib\Lib.HTTPConsts.pas]
 ModuleType=TSourceModule
 FormState=0
 FormOnTop=0
@@ -93,17 +101,9 @@ ModuleType=TSourceModule
 FormState=0
 FormOnTop=0
 
-[D:\eidos\HTTP\lib\Lib.JSON.Store.pas]
-ModuleType=TSourceModule
-FormState=0
-FormOnTop=0
-
-[default.htm]
-ModuleType=TURLModule
-
 [EditWindow0]
 ViewCount=16
-CurrentEditView=D:\eidos\HTTP\lib\Lib.HTTPClient.pas
+CurrentEditView=D:\eidos\HTTP\lib\Lib.JSON.Store.pas
 View0=0
 View1=1
 View2=2
@@ -125,8 +125,8 @@ Create=1
 Visible=1
 Docked=0
 State=0
-Left=1689
-Top=1504
+Left=1230
+Top=1558
 Width=6553
 Height=8306
 MaxLeft=-10
@@ -163,9 +163,9 @@ EditViewName=D:\eidos\HTTP\HTTPClient\httpclient.dpr
 [View2]
 CustomEditViewType=TEditView
 Module=D:\eidos\HTTP\HTTPClient\Forms\Form.ClientMain.pas
-CursorX=23
-CursorY=231
-TopLine=215
+CursorX=3
+CursorY=95
+TopLine=91
 LeftCol=1
 Elisions=
 Bookmarks={1,305,1}
@@ -174,9 +174,9 @@ EditViewName=D:\eidos\HTTP\HTTPClient\Forms\Form.ClientMain.pas
 [View3]
 CustomEditViewType=TEditView
 Module=D:\eidos\HTTP\lib\Lib.JSON.Store.pas
-CursorX=6
-CursorY=10
-TopLine=1
+CursorX=40
+CursorY=261
+TopLine=250
 LeftCol=1
 Elisions=
 Bookmarks=
@@ -196,9 +196,9 @@ EditViewName=D:\eidos\HTTP\lib\Lib.JSON.Format.pas
 [View5]
 CustomEditViewType=TEditView
 Module=D:\eidos\HTTP\HTTPClient\Forms\Form.Request.pas
-CursorX=1
-CursorY=101
-TopLine=75
+CursorX=49
+CursorY=53
+TopLine=50
 LeftCol=1
 Elisions=
 Bookmarks=
@@ -224,14 +224,14 @@ TopLine=32
 LeftCol=1
 Elisions=
 Bookmarks=
-EditViewName=D:\eidos\HTTP\lib\Lib.HTTPConsts.pas
+EditViewName=Borland.FileHistoryView
 
 [View8]
 CustomEditViewType=TEditView
 Module=D:\eidos\HTTP\lib\Lib.HTTPClient.pas
-CursorX=32
-CursorY=45
-TopLine=33
+CursorX=57
+CursorY=49
+TopLine=39
 LeftCol=1
 Elisions=
 Bookmarks={1,132,1}{2,190,1}{3,126,1}
@@ -295,9 +295,9 @@ EditViewName=c:\program files\embarcadero\studio\16.0\SOURCE\RTL\SYS\System.SysU
 [View14]
 CustomEditViewType=TEditView
 Module=D:\eidos\HTTP\lib\Lib.TCPSocket.pas
-CursorX=1
-CursorY=345
-TopLine=330
+CursorX=34
+CursorY=444
+TopLine=428
 LeftCol=1
 Elisions=
 Bookmarks=
@@ -349,14 +349,16 @@ PercentageSizes=1
 Create=1
 Visible=1
 Docked=0
-State=0
+State=2
 Left=0
 Top=0
 Width=10000
 Height=1938
 MaxLeft=-10
 MaxTop=-14
-ClientWidth=9902
+MaxWidth=10000
+MaxHeight=1938
+ClientWidth=10000
 ClientHeight=1531
 BottomPanelSize=0
 
@@ -845,7 +847,7 @@ Dockable=1
 StayOnTop=0
 TabPosition=1
 ActiveTabID=RefactoringForm
-TabDockClients=RefactoringForm,FindReferencsForm,QAView,MetricsView
+TabDockClients=RefactoringForm,FindReferencsForm,MetricsView,QAView
 
 [DockSite1]
 DockSiteType=1

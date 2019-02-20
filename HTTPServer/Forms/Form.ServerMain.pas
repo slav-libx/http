@@ -81,7 +81,7 @@ begin
 
   FStore:=TJSONStore.Create(ExtractFilePath(ParamStr(0))+'serv-store.json');
 
-  BoundsRect:=FStore.ReadRect('form.rect',BoundsRect);
+  BoundsRect:=FStore.ReadRect('form.bounds',BoundsRect);
   Edit1.Text:=FStore.ReadString('host');
   Edit2.Text:=FStore.ReadInteger('port',80).ToString;
   Edit3.Text:=FStore.ReadString('home',ExtractFilePath(ParamStr(0))+'Home');
@@ -102,7 +102,7 @@ procedure TForm3.FormDestroy(Sender: TObject);
 begin
 
   if WindowState=TWindowState.wsNormal then
-    FStore.WriteRect('form.rect',BoundsRect);
+    FStore.WriteRect('form.bounds',BoundsRect);
   FStore.WriteString('host',Edit1.Text);
   FStore.WriteInteger('port',StrToIntDef(Edit2.Text,80));
   FStore.WriteString('home',Edit3.Text);

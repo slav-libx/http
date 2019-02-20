@@ -114,8 +114,11 @@ end;
 
 function AddPair(jsObject: TJSONObject; const Name: string): TJSONObject;
 begin
-  Result:=TJSONObject.Create;
-  jsObject.AddPair(Name,Result);
+  if not jsObject.TryGetValue(Name,Result) then
+  begin
+    Result:=TJSONObject.Create;
+    jsObject.AddPair(Name,Result);
+  end;
 end;
 
 function TJSONStore.ForceObject(const Path: string; jsRoot: TJSONObject;
