@@ -115,7 +115,7 @@ begin
 
   SetTimeout(0,TIMEOUT_KEEPALIVE);
 
-  while Request.DoRead(Read(20000))>0 do;
+  while Request.DoRead(Read(20000))>0 do; // call DoReadComplete
 
   if not FKeepAlive then Free;
 
