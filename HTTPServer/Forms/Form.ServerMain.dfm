@@ -15,7 +15,7 @@ object Form3: TForm3
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  Position = poScreenCenter
+  Position = poDesigned
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (

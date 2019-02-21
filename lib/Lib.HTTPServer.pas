@@ -22,6 +22,7 @@ type
     FOnRequest: TNotifyEvent;
     FOnResponse: TNotifyEvent;
     FKeepAliveTimeout: Cardinal;
+    FKeepAlive: Boolean;
     procedure SetKeepAliveTimeout(Value: Cardinal);
   protected
     procedure DoTimeout(Code: Integer); override;
@@ -89,6 +90,7 @@ const
 constructor THTTPServerClient.Create;
 begin
   inherited;
+  FKeepAlive:=True;
   FAliases:=TStringList.Create;
   SetTimeout(KeepAliveTimeout*1000,TIMEOUT_KEEPALIVE);
 end;
@@ -110,14 +112,27 @@ end;
 
 procedure THTTPServerClient.DoRead;
 begin
+
   SetTimeout(0,TIMEOUT_KEEPALIVE);
+
   while Request.DoRead(Read(20000))>0 do;
+
+  if not FKeepAlive then Free;
+
 end;
 
 procedure THTTPServerClient.DoReadComplete;
 begin
+
   if Assigned(FOnRequest) then FOnRequest(Self);
+
+  FKeepAlive:=SameText(Request.GetHeaderValue('Connection'),'keep-alive');
+
   DoResponse;
+
+  if FKeepAlive then
+    SetTimeout(KeepAliveTimeout*1000,TIMEOUT_KEEPALIVE);
+
 end;
 
 procedure THTTPServerClient.DoTimeout(Code: Integer);
@@ -126,19 +141,15 @@ begin
 end;
 
 procedure THTTPServerClient.DoResponse;
-var
-  FileName: string;
-  ClientKeepAlive: Boolean;
+var FileName: string;
 begin
+
+  Response.Reset;
+  Response.Protocol:=PROTOCOL_HTTP11;
+  Response.AddHeaderKeepAlive(FKeepAlive,KeepAliveTimeout);
 
   if Request.Protocol=PROTOCOL_HTTP11 then
   begin
-
-    ClientKeepAlive:=SameText(Request.GetHeaderValue('Connection'),'keep-alive');
-
-    Response.Reset;
-    Response.Protocol:=PROTOCOL_HTTP11;
-    Response.AddHeaderKeepAlive(ClientKeepAlive,KeepAliveTimeout);
 
     if Request.Method=METHOD_GET then
     begin
@@ -148,7 +159,7 @@ begin
       if FileExists(FileName) then
       begin
 
-        Response.SetResult(HTTP_SUCCESS,'OK');
+        Response.SetResult(HTTPCODE_SUCCESS,'OK');
 
         Response.AddContentFile(FileName);
 
@@ -157,12 +168,12 @@ begin
       if FileName='' then
       begin
 
-        Response.SetResult(400,'Bad Request');
+        Response.SetResult(HTTPCODE_BAD_REQUEST,'Bad Request');
 
       end else
       begin
 
-        Response.SetResult(404,'Not Found');
+        Response.SetResult(HTTPCODE_NOT_FOUND,'Not Found');
 
         Response.AddContentText(content_404,HTTPGetMIMEType('.html'));
 
@@ -170,22 +181,22 @@ begin
     end else
     begin
 
-      Response.SetResult(405,'Method Not Allowed');
+      Response.SetResult(HTTPCODE_METHOD_NOT_ALLOWED,'Method Not Allowed');
 
     end;
 
-    WriteString(Response.SendHeaders);
+  end else
+  begin
 
-    Write(Response.Content);
-
-    if Assigned(FOnResponse) then FOnResponse(Self);
-
-    if not ClientKeepAlive then
-      DoTimeout(TIMEOUT_KEEPALIVE)
-    else
-      SetTimeout(KeepAliveTimeout*1000,TIMEOUT_KEEPALIVE);
+    Response.SetResult(HTTPCODE_NOT_SUPPORTED,'HTTP Version Not Supported');
 
   end;
+
+  WriteString(Response.SendHeaders);
+
+  Write(Response.Content);
+
+  if Assigned(FOnResponse) then FOnResponse(Self);
 
 end;
 

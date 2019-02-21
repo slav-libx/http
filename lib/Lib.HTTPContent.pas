@@ -428,7 +428,7 @@ begin
 
   Ext:=HTTPGetContentExt(GetHeaderValue('Content-Type'));
 
-  if ResultCode<>HTTP_SUCCESS then
+  if ResultCode<>HTTPCODE_SUCCESS then
     ResourceName:='res'
   else
   if ResourceName='' then
