@@ -89,7 +89,6 @@ begin
   Edit2.Text:=FStore.ReadInteger('port',80).ToString;
   Edit3.Text:=FStore.ReadString('home',ExtractFilePath(ParamStr(0))+'Home');
   Edit4.Text:=FStore.ReadInteger('keep-alive.timeout',10).ToString;
-//  CheckBox1.Checked:=FStore.ReadBool('keep-alive.enabled',False);
   FStore.ReadStrings('aliases',Memo2.Lines);
 
   SpeedButton2.Down:=True;
@@ -110,7 +109,6 @@ begin
   FStore.WriteInteger('port',StrToIntDef(Edit2.Text,80));
   FStore.WriteString('home',Edit3.Text);
   FStore.WriteInteger('keep-alive.timeout',StrToIntDef(Edit4.Text,10));
-  //FStore.WriteBool('keep-alive.enabled',CheckBox1.Checked);
   FStore.WriteStrings('aliases',Memo2.Lines);
 
   FStore.Free;
