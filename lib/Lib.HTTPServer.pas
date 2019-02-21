@@ -126,7 +126,7 @@ begin
 
   if Assigned(FOnRequest) then FOnRequest(Self);
 
-  FKeepAlive:=SameText(Request.GetHeaderValue('Connection'),'keep-alive');
+  FKeepAlive:=(KeepAliveTimeout>0) and SameText(Request.GetHeaderValue('Connection'),'keep-alive');
 
   DoResponse;
 

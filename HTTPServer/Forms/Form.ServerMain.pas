@@ -8,6 +8,7 @@ uses
   System.SysUtils,
   System.Variants,
   System.Classes,
+  System.StrUtils,
   System.JSON,
   Vcl.Graphics,
   Vcl.Controls,
@@ -50,6 +51,7 @@ type
     procedure SpeedButton2Click(Sender: TObject);
     procedure SpeedButton1Click(Sender: TObject);
     procedure SpeedButton3Click(Sender: TObject);
+    procedure OnConfigChange(Sender: TObject);
   private
     FStore: TJSONStore;
     FCount: Integer;
@@ -59,6 +61,7 @@ type
     procedure OnRequest(Sender: TObject);
     procedure OnResponse(Sender: TObject);
     procedure SetServerControls;
+    procedure DoUpdateConfig;
   public
   end;
 
@@ -118,20 +121,33 @@ end;
 
 procedure TForm3.SetServerControls;
 var
-  A,B: Boolean;
-  C: Integer;
+  ServerStarted: Boolean;
+  ClientsCount: Integer;
 begin
 
-  C:=0;
+  ClientsCount:=0;
 
-  A:=Assigned(FServer);
-  if Assigned(FConnections) then C:=FConnections.ClientsCount;
-  B:=C>0;
+  if Assigned(FConnections) then
+    ClientsCount:=FConnections.ClientsCount;
 
-  if A then Button1.Caption:='Stop' else Button1.Caption:='Start';
-  Button2.Enabled:=B;
-  Label2.Caption:=' '+C.ToString+' ';
+  ServerStarted:=Assigned(FServer);
 
+  Button1.Caption:=IfThen(ServerStarted,'Stop','Start');
+  Button2.Enabled:=ClientsCount>0;
+  Edit1.Enabled:=not ServerStarted;
+  Edit2.Enabled:=not ServerStarted;
+  Label2.Caption:=' '+ClientsCount.ToString+' ';
+
+end;
+
+procedure TForm3.DoUpdateConfig;
+begin
+  if Assigned(FServer) then
+  begin
+    FServer.Home:=Edit3.Text;
+    FServer.Aliases.Assign(Memo2.Lines);
+    FServer.KeepAliveTimeout:=StrToInt64Def(Edit4.Text,10);
+  end;
 end;
 
 procedure TForm3.SpeedButton1Click(Sender: TObject);
@@ -167,9 +183,7 @@ begin
     FServer:=THTTPServer.Create;
     try
       FServer.Connections:=FConnections;
-      FServer.Home:=Edit3.Text;
-      FServer.Aliases.Assign(Memo2.Lines);
-      FServer.KeepAliveTimeout:=StrToInt64Def(Edit4.Text,10);
+      DoUpdateConfig;
       FServer.Start(Edit1.Text,StrToInt(Edit2.Text));
       RequestsMemo.Lines.Add('Server started'#13#10);
       SetServerControls;
@@ -215,6 +229,11 @@ end;
 procedure TForm3.Button4Click(Sender: TObject);
 begin
   RequestsMemo.Clear;
+end;
+
+procedure TForm3.OnConfigChange(Sender: TObject);
+begin
+  DoUpdateConfig;
 end;
 
 end.
