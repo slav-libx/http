@@ -43,6 +43,8 @@ type
     procedure AddContentFile(const FileName: string); overload;
     procedure AddContentFile(const FileName,ContentType: string); overload;
     function GetHeaderValue(const Name: string): string;
+    function ConnectionClose: Boolean;
+    function ConnectionKeepAlive: Boolean;
     property Headers: TStrings read FHeaders;
   public
     procedure Reset; virtual;
@@ -82,7 +84,6 @@ type
     procedure Assign(Source: TContent); override;
     function SendHeaders: string; override;
     procedure SetResult(Code: Integer; const Text: string);
-    function ConnectionClose: Boolean;
     procedure SetResource(const Resource: string);
   end;
 
@@ -162,6 +163,16 @@ end;
 function TContent.GetHeaderValue(const Name: string): string;
 begin
   Result:=HTTPGetHeaderValue(Headers,Name);
+end;
+
+function TContent.ConnectionClose: Boolean;
+begin
+  Result:=GetHeaderValue('Connection')='close';
+end;
+
+function TContent.ConnectionKeepAlive: Boolean;
+begin
+  Result:=SameText(GetHeaderValue('Connection'),'keep-alive');
 end;
 
 procedure TContent.DoBeginRead;
@@ -412,11 +423,6 @@ begin
   end;
 
   inherited;
-end;
-
-function TResponse.ConnectionClose: Boolean;
-begin
-  Result:=GetHeaderValue('Connection')='close';
 end;
 
 procedure TResponse.SetResource(const Resource: string);
