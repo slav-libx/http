@@ -34,6 +34,8 @@ function HTTPTrySplitResponseResult(Header: TStrings; out Protocol: string; out 
 function HTTPTrySplitRequest(const Request: string; out AMethod,AResource,AProtocol: string): Boolean;
 function HTTPGetHeaderValue(Header: TStrings; const Name: string): string;
 procedure HTTPSetHeaderValue(Header: TStrings; const Name,Value: string);
+function HTTPGetTag(const Value,Tag: string): string;
+function HTTPGetTagValue(const Tag: string): string;
 function HTTPEndedChunked(const B: TBytes): Boolean;
 function HTTPBytesFromChunked(const B: TBytes): TBytes;
 function HTTPGetHeaderLength(const B: TBytes): Integer;
@@ -232,6 +234,22 @@ begin
     Exit;
   end;
   Header.Add(Name+': '+Value);
+end;
+
+function HTTPGetTag(const Value,Tag: string): string;
+var S: string;
+begin
+  for S in Value.Split([';']) do
+  if S.Trim.StartsWith(Tag+'=') then Exit(S);
+  Result:='';
+end;
+
+function HTTPGetTagValue(const Tag: string): string;
+var P: Integer;
+begin
+  Result:='';
+  P:=Tag.IndexOf('=');
+  if P<>-1 then Result:=Tag.Substring(P+1);
 end;
 
 function HTTPEndedChunked(const B: TBytes): Boolean;

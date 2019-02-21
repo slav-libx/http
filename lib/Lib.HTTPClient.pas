@@ -32,10 +32,10 @@ type
     FOnMessage: TNotifyEvent;
     FMessage: string;
     FKeepAlive: Boolean;
-    FKeepAliveTimeout: Cardinal;
+    FKeepAliveTimeout: Integer;
     FResponseTimeout: Cardinal;
-    procedure UpdateKeepAliveTimeout;
-    procedure SetKeepAliveTimeout(Value: Cardinal);
+    procedure SetupKeepAliveTimeout(Value: Integer);
+    procedure SetKeepAliveTimeout(Value: Integer);
     procedure SetKeepAlive(Value: Boolean);
     procedure OnNextRequest(Sender: TObject);
  protected
@@ -66,7 +66,7 @@ type
     property OnIdle: TNotifyEvent read FOnIdle write FOnIdle;
     property OnDestroy;
     property KeepAlive: Boolean read FKeepAlive write SetKeepAlive;
-    property KeepAliveTimeout: Cardinal read FKeepAliveTimeout write SetKeepAliveTimeout;
+    property KeepAliveTimeout: Integer read FKeepAliveTimeout write SetKeepAliveTimeout;
     property ResponseTimeout: Cardinal read FResponseTimeout write FResponseTimeout;
     property Message: string read FMessage;
   end;
@@ -92,20 +92,20 @@ begin
   inherited;
 end;
 
-procedure THTTPClient.UpdateKeepAliveTimeout;
+procedure THTTPClient.SetupKeepAliveTimeout(Value: Integer);
 begin
   if KeepAlive then
-    SetTimeout(KeepAliveTimeout*1000,TIMEOUT_KEEPALIVE)
+    SetTimeout(Value*1000,TIMEOUT_KEEPALIVE)
   else
     SetTimeout(0,TIMEOUT_KEEPALIVE);
 end;
 
-procedure THTTPClient.SetKeepAliveTimeout(Value: Cardinal);
+procedure THTTPClient.SetKeepAliveTimeout(Value: Integer);
 begin
   if FKeepAliveTimeout<>Value then
   begin
     FKeepAliveTimeout:=Value;
-    UpdateKeepAliveTimeout;
+    SetupKeepAliveTimeout(Value);
   end;
 end;
 
@@ -114,7 +114,7 @@ begin
   if FKeepAlive<>Value then
   begin
     FKeepAlive:=Value;
-    UpdateKeepAliveTimeout;
+    SetupKeepAliveTimeout(FKeepAliveTimeout);
   end;
 end;
 
@@ -128,10 +128,23 @@ begin
 end;
 
 procedure THTTPClient.DoResponseComplete;
+var
+  TagTimeout: string;
+  TimeoutValue: Integer;
 begin
+
   SetTimeout(0,TIMEOUT_READ);
-  UpdateKeepAliveTimeout;
+
+  TimeoutValue:=KeepAliveTimeout;
+
+  TagTimeout:=Response.GetHeaderTag('Keep-Alive','timeout');
+  if TagTimeout<>'' then
+    TimeoutValue:=StrToIntDef(HTTPGetTagValue(TagTimeout),TimeoutValue);
+
+  SetupKeepAliveTimeout(TimeoutValue);
+
   if Assigned(FOnResponseComplete) then FOnResponseComplete(Self);
+
 end;
 
 procedure THTTPClient.DoExcept(Code: Integer);

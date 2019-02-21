@@ -43,6 +43,7 @@ type
     procedure AddContentFile(const FileName: string); overload;
     procedure AddContentFile(const FileName,ContentType: string); overload;
     function GetHeaderValue(const Name: string): string;
+    function GetHeaderTag(const Name,Tag: string): string;
     function ConnectionClose: Boolean;
     function ConnectionKeepAlive: Boolean;
     property Headers: TStrings read FHeaders;
@@ -165,9 +166,14 @@ begin
   Result:=HTTPGetHeaderValue(Headers,Name);
 end;
 
+function TContent.GetHeaderTag(const Name,Tag: string): string;
+begin
+  Result:=HTTPGetTag(GetHeaderValue(Name),Tag);
+end;
+
 function TContent.ConnectionClose: Boolean;
 begin
-  Result:=GetHeaderValue('Connection')='close';
+  Result:=SameText(GetHeaderValue('Connection'),'close');
 end;
 
 function TContent.ConnectionKeepAlive: Boolean;
