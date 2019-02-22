@@ -240,7 +240,7 @@ function HTTPGetTag(const Value,Tag: string): string;
 var S: string;
 begin
   for S in Value.Split([';']) do
-  if S.Trim.StartsWith(Tag+'=') then Exit(S);
+  if S.Trim.StartsWith(Tag+'=') then Exit(S.Trim);
   Result:='';
 end;
 
