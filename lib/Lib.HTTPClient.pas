@@ -131,11 +131,14 @@ end;
 procedure THTTPClient.DoClose;
 begin
   inherited;
-  FActive:=False;
   SetReadTimeout(0);
   SetKeepAliveTimeout(0);
   DoConnectionClose;
-  DoNextRequestGet;
+  if FActive then
+  begin
+    FActive:=False;
+    DoNextRequestGet;
+  end;
 end;
 
 procedure THTTPClient.DoRead;
