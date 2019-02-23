@@ -32,10 +32,9 @@ type
     FMessage: string;
     FKeepAlive: Boolean;
     FKeepAliveTimeout: Integer;
-    FResponseTimeout: Cardinal;
-    procedure SetupKeepAliveTimeout(Value: Integer);
+    FReadTimeout: Cardinal;
+    procedure SetReadTimeout(Value: Integer);
     procedure SetKeepAliveTimeout(Value: Integer);
-    procedure SetKeepAlive(Value: Boolean);
  protected
     procedure DoExcept(Code: Integer); override;
     procedure DoTimeout(Code: Integer); override;
@@ -60,9 +59,9 @@ type
     property OnMessage: TNotifyEvent read FOnMessage write FOnMessage;
     property OnIdle: TNotifyEvent read FOnIdle write FOnIdle;
     property OnDestroy;
-    property KeepAlive: Boolean read FKeepAlive write SetKeepAlive;
-    property KeepAliveTimeout: Integer read FKeepAliveTimeout write SetKeepAliveTimeout;
-    property ResponseTimeout: Cardinal read FResponseTimeout write FResponseTimeout;
+    property KeepAlive: Boolean read FKeepAlive write FKeepAlive;
+    property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
+    property ReadTimeout: Cardinal read FReadTimeout write FReadTimeout;
     property Message: string read FMessage;
   end;
 
@@ -76,7 +75,7 @@ constructor THTTPClient.Create;
 begin
   inherited;
   FActive:=False;
-  FResponseTimeout:=10000;
+  FReadTimeout:=10000;
   FBuffer.Init;
 end;
 
@@ -86,30 +85,17 @@ begin
   inherited;
 end;
 
-procedure THTTPClient.SetupKeepAliveTimeout(Value: Integer);
+procedure THTTPClient.SetReadTimeout(Value: Integer);
+begin
+  SetTimeout(Value,TIMEOUT_READ);
+end;
+
+procedure THTTPClient.SetKeepAliveTimeout(Value: Integer);
 begin
   if KeepAlive then
     SetTimeout(Value*1000,TIMEOUT_KEEPALIVE)
   else
     SetTimeout(0,TIMEOUT_KEEPALIVE);
-end;
-
-procedure THTTPClient.SetKeepAliveTimeout(Value: Integer);
-begin
-  if FKeepAliveTimeout<>Value then
-  begin
-    FKeepAliveTimeout:=Value;
-    SetupKeepAliveTimeout(Value);
-  end;
-end;
-
-procedure THTTPClient.SetKeepAlive(Value: Boolean);
-begin
-  if FKeepAlive<>Value then
-  begin
-    FKeepAlive:=Value;
-    SetupKeepAliveTimeout(FKeepAliveTimeout);
-  end;
 end;
 
 procedure THTTPClient.DoExcept(Code: Integer);
@@ -137,10 +123,7 @@ end;
 
 procedure THTTPClient.DoConnectionClose;
 begin
-  SetTimeout(0,TIMEOUT_READ);
-  SetupKeepAliveTimeout(0);
   DoMessage('client-close ('+FSocket.ToString+')');
-  FActive:=False;
   FHost:='';
   Close;
 end;
@@ -148,6 +131,9 @@ end;
 procedure THTTPClient.DoClose;
 begin
   inherited;
+  FActive:=False;
+  SetReadTimeout(0);
+  SetKeepAliveTimeout(0);
   DoConnectionClose;
   DoNextRequestGet;
 end;
@@ -164,30 +150,28 @@ end;
 
 procedure THTTPClient.DoReadComplete;
 var
-  TagTimeout: string;
-  TimeoutValue: Integer;
+  Timeout: Integer;
 begin
 
-  Response.SetResource(Request.Resource);
+  FActive:=False;
 
   if not KeepAlive or Response.ConnectionClose then
+  begin
 
-    DoConnectionClose
+    DoConnectionClose;
+    Timeout:=0;
 
-  else begin
+  end else begin
 
-    FActive:=False;
-
-    TimeoutValue:=KeepAliveTimeout;
-
-    TagTimeout:=Response.GetHeaderTag('Keep-Alive','timeout');
-    if TagTimeout<>'' then
-      TimeoutValue:=StrToIntDef(HTTPGetTagValue(TagTimeout),TimeoutValue);
-
-    SetTimeout(0,TIMEOUT_READ);
-    SetupKeepAliveTimeout(TimeoutValue);
+    Timeout:=Response.KeepAliveTimeout;
+    if Timeout=0 then Timeout:=KeepAliveTimeout;
 
   end;
+
+  SetReadTimeout(0);
+  SetKeepAliveTimeout(Timeout);
+
+  Response.SetResource(Request.Resource);
 
   if Assigned(FOnResponse) then FOnResponse(Self);
 
@@ -203,11 +187,15 @@ end;
 
 procedure THTTPClient.DoRequest;
 begin
+
   WriteString(Request.SendHeaders);
   Write(Request.Content);
+
   if Assigned(FOnRequest) then FOnRequest(Self);
-  SetTimeout(ResponseTimeout,TIMEOUT_READ);
-  SetTimeout(0,TIMEOUT_KEEPALIVE);
+
+  SetReadTimeout(ReadTimeout);
+  SetKeepAliveTimeout(0);
+
 end;
 
 procedure THTTPClient.DoNextRequestGet;
