@@ -112,7 +112,6 @@ object Form3: TForm3
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 4
     Text = '124'
-    OnChange = OnConfigChange
   end
   object Memo2: TMemo
     Left = 56
@@ -125,7 +124,6 @@ object Form3: TForm3
       'resources=D:\RP5Scenarios\Resources')
     ScrollBars = ssVertical
     TabOrder = 5
-    OnChange = OnConfigChange
   end
   object Edit4: TEdit
     Left = 161
@@ -134,7 +132,6 @@ object Form3: TForm3
     Height = 21
     TabOrder = 6
     Text = '10'
-    OnChange = OnConfigChange
   end
   object ContentMemo: TMemo
     Left = 0

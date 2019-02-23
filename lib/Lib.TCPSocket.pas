@@ -97,6 +97,7 @@ type
     FOnAccept: TNotifyevent;
   protected
     procedure DoEvent(EventCode: Word); override;
+    procedure DoAccept; virtual;
   public
     procedure Start(const Host: string; Port: Integer);
     procedure Stop;
@@ -425,13 +426,16 @@ begin
     Write(Encoding.GetBytes(S));
 end;
 
-{
-TTCPServer
-}
+{ TTCPServer }
+
+procedure TTCPServer.DoAccept;
+begin
+  if Assigned(FOnAccept) then FOnAccept(Self);
+end;
 
 procedure TTCPServer.DoEvent(EventCode: Word);
 begin
-  if (EventCode=FD_ACCEPT) and Assigned(FOnAccept) then FOnAccept(Self);
+  if EventCode=FD_ACCEPT then DoAccept;
 end;
 
 procedure TTCPServer.Start(const Host: string; Port: Integer);

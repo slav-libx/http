@@ -33,7 +33,7 @@ type
     FKeepAlive: Boolean;
     FKeepAliveTimeout: Integer;
     FReadTimeout: Cardinal;
-    procedure SetReadTimeout(Value: Integer);
+    procedure SetReadTimeout(Value: Cardinal);
     procedure SetKeepAliveTimeout(Value: Integer);
  protected
     procedure DoExcept(Code: Integer); override;
@@ -85,7 +85,7 @@ begin
   inherited;
 end;
 
-procedure THTTPClient.SetReadTimeout(Value: Integer);
+procedure THTTPClient.SetReadTimeout(Value: Cardinal);
 begin
   SetTimeout(Value,TIMEOUT_READ);
 end;

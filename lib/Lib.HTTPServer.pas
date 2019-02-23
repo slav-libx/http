@@ -5,36 +5,41 @@ interface
 uses
   System.SysUtils,
   System.Classes,
-  System.SyncObjs,
   System.Generics.Collections,
-  Winapi.Winsock2,
   Lib.TCPSocket,
   Lib.HTTPConsts,
   Lib.HTTPUtils,
-  Lib.HTTPSocket;
+  Lib.HTTPSocket,
+  Lib.HTTPServer.Middleware;
 
 type
 
+  THTTPServer = class(TTCPServer);
+
   THTTPServerClient = class(THTTPSocket)
   private
-    FHome: string;
-    FAliases: TStrings;
+    FMiddleware: array of TMiddleware;
     FOnRequest: TNotifyEvent;
     FOnResponse: TNotifyEvent;
-    FKeepAliveTimeout: Cardinal;
+    FReadTimeout: Cardinal;
+    FKeepAliveTimeout: Integer;
     FKeepAlive: Boolean;
-    procedure SetKeepAliveTimeout(Value: Cardinal);
+    procedure SetReadTimeout(Value: Cardinal);
+    procedure SetKeepAliveTimeout(Value: Integer);
   protected
     procedure DoTimeout(Code: Integer); override;
     procedure DoRead; override;
     procedure DoResponse;
     procedure DoReadComplete; override;
+    function DoMethodMiddleware: Boolean;
+    function DoUseMiddleware: Boolean;
   public
     constructor Create; override;
     destructor Destroy; override;
+    procedure UseMiddleware(const Method,Route: string; Middleware: IMiddleware);
     property OnRequest: TNotifyEvent read FOnRequest write FOnRequest;
     property OnResponse: TNotifyEvent read FOnResponse write FOnResponse;
-    property KeepAliveTimeout: Cardinal read FKeepAliveTimeout write SetKeepAliveTimeout;
+    property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
   end;
 
   THTTPConnections = class
@@ -63,27 +68,11 @@ type
     property OnResponse: TNotifyEvent read FOnResponse write FOnResponse;
   end;
 
-  THTTPServer = class(TTCPServer)
-  private
-    FConnections: THTTPConnections;
-    FHome: string;
-    FAliases: TStrings;
-    FKeepAliveTimeout: Cardinal;
-  protected
-    procedure DoEvent(EventCode: Word); override;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    property Connections: THTTPConnections write FConnections;
-    property Home: string read FHome write FHome;
-    property Aliases: TStrings read FAliases;
-    property KeepAliveTimeout: Cardinal read FKeepAliveTimeout write FKeepAliveTimeout;
-  end;
-
 implementation
 
 const
   TIMEOUT_KEEPALIVE=1;
+  TIMEOUT_READ=2;
 
 { THTTPServerClient }
 
@@ -91,29 +80,37 @@ constructor THTTPServerClient.Create;
 begin
   inherited;
   FKeepAlive:=True;
-  FAliases:=TStringList.Create;
-  SetTimeout(KeepAliveTimeout*1000,TIMEOUT_KEEPALIVE);
+  FReadTimeout:=10000;
+  SetReadTimeout(FReadTimeout);
 end;
 
 destructor THTTPServerClient.Destroy;
 begin
-  FAliases.Free;
   inherited;
 end;
 
-procedure THTTPServerClient.SetKeepAliveTimeout(Value: Cardinal);
+procedure THTTPServerClient.UseMiddleware(const Method,Route: string; Middleware: IMiddleware);
 begin
-  if FKeepAliveTimeout<>Value then
-  begin
-    FKeepAliveTimeout:=Value;
-    SetTimeout(KeepAliveTimeout*1000,TIMEOUT_KEEPALIVE);
-  end;
+  Insert(TMiddleware.Create(Method,Route,Middleware),FMiddleware,Length(FMiddleware));
+end;
+
+procedure THTTPServerClient.SetReadTimeout(Value: Cardinal);
+begin
+  SetTimeout(Value,TIMEOUT_READ);
+end;
+
+procedure THTTPServerClient.SetKeepAliveTimeout(Value: Integer);
+begin
+  if FKeepAlive then
+    SetTimeout(Value*1000,TIMEOUT_KEEPALIVE)
+  else
+    SetTimeout(0,TIMEOUT_KEEPALIVE);
 end;
 
 procedure THTTPServerClient.DoRead;
 begin
 
-  SetTimeout(0,TIMEOUT_KEEPALIVE);
+  SetReadTimeout(FReadTimeout);
 
   while Request.DoRead(Read(20000))>0 do; // call DoReadComplete
 
@@ -124,14 +121,15 @@ end;
 procedure THTTPServerClient.DoReadComplete;
 begin
 
+  SetReadTimeout(0);
+
   if Assigned(FOnRequest) then FOnRequest(Self);
 
   FKeepAlive:=(KeepAliveTimeout>0) and Request.ConnectionKeepAlive;
 
   DoResponse;
 
-  if FKeepAlive then
-    SetTimeout(KeepAliveTimeout*1000,TIMEOUT_KEEPALIVE);
+  SetKeepAliveTimeout(KeepAliveTimeout);
 
 end;
 
@@ -140,57 +138,90 @@ begin
   Free;
 end;
 
+function THTTPServerClient.DoMethodMiddleware: Boolean;
+var M: TMiddleware;
+begin
+  Result:=False;
+  for M in FMiddleware do
+  if Request.Method=M.Method then Exit(True);
+end;
+
+function THTTPServerClient.DoUseMiddleware: Boolean;
+var M: TMiddleware;
+begin
+  Result:=False;
+  for M in FMiddleware do
+  if Request.Method=M.Method then
+  if Request.Resource.StartsWith(M.Route) then
+  if M.Middleware.Use(Request,Response) then Exit(True);
+end;
+
 procedure THTTPServerClient.DoResponse;
-var FileName: string;
 begin
 
   Response.Reset;
   Response.Protocol:=PROTOCOL_HTTP11;
   Response.AddHeaderKeepAlive(FKeepAlive,KeepAliveTimeout);
 
-  if Request.Protocol=PROTOCOL_HTTP11 then
+  if Request.Protocol<>PROTOCOL_HTTP11 then
   begin
 
-    if Request.Method=METHOD_GET then
-    begin
-
-      FileName:=HTTPResourceToLocalFileName(Request.Resource,FHome,FAliases);
-
-      if FileExists(FileName) then
-      begin
-
-        Response.SetResult(HTTPCODE_SUCCESS,'OK');
-
-        Response.AddContentFile(FileName);
-
-      end else
-
-      if FileName='' then
-      begin
-
-        Response.SetResult(HTTPCODE_BAD_REQUEST,'Bad Request');
-
-      end else
-      begin
-
-        Response.SetResult(HTTPCODE_NOT_FOUND,'Not Found');
-
-        Response.AddContentText(content_404,HTTPGetMIMEType('.html'));
-
-      end
-    end else
-    begin
-
-      Response.SetResult(HTTPCODE_METHOD_NOT_ALLOWED,'Method Not Allowed');
-
-    end;
+    Response.SetResult(HTTPCODE_NOT_SUPPORTED,'HTTP Version Not Supported')
 
   end else
+
+  if not DoMethodMiddleware then
   begin
 
-    Response.SetResult(HTTPCODE_NOT_SUPPORTED,'HTTP Version Not Supported');
+    Response.SetResult(HTTPCODE_METHOD_NOT_ALLOWED,'Method Not Allowed');
+
+  end else
+
+  if not DoUseMiddleware then
+  begin
+
+    Response.SetResult(HTTPCODE_NOT_FOUND,'Not Found');
+
+    Response.AddContentText(content_404,HTTPGetMIMEType('.html'));
 
   end;
+
+//      FileName:=HTTPResourceToLocalFileName(Request.Resource,FHome,FAliases);
+//
+//      if FileExists(FileName) then
+//      begin
+//
+//        Response.SetResult(HTTPCODE_SUCCESS,'OK');
+//
+//        Response.AddContentFile(FileName);
+//
+//      end else
+//
+//      if FileName='' then
+//      begin
+//
+//        Response.SetResult(HTTPCODE_BAD_REQUEST,'Bad Request');
+//
+//      end else
+//      begin
+//
+//        Response.SetResult(HTTPCODE_NOT_FOUND,'Not Found');
+//
+//        Response.AddContentText(content_404,HTTPGetMIMEType('.html'));
+//
+//      end
+//    end else
+//    begin
+//
+//      Response.SetResult(HTTPCODE_METHOD_NOT_ALLOWED,'Method Not Allowed');
+//
+//    end;
+//
+//  end else
+//  begin
+//
+//
+//  end;
 
   WriteString(Response.SendHeaders);
 
@@ -263,35 +294,6 @@ end;
 procedure THTTPConnections.DoDestroy(Client: TObject);
 begin
   RemoveClient(Client);
-end;
-
-{ THTTPServer }
-
-procedure THTTPServer.DoEvent(EventCode: Word);
-var C: THTTPServerClient;
-begin
-  inherited;
-  if EventCode=FD_ACCEPT then
-  begin
-    C:=THTTPServerClient.CreateOn(AcceptClient);
-    C.FHome:=Home;
-    C.FAliases.Assign(FAliases);
-    C.KeepAliveTimeout:=KeepAliveTimeout;
-    if Assigned(FConnections) then FConnections.AddClient(C);
-  end;
-end;
-
-constructor THTTPServer.Create;
-begin
-  inherited;
-  FKeepAliveTimeout:=10;
-  FAliases:=TStringList.Create;
-end;
-
-destructor THTTPServer.Destroy;
-begin
-  FAliases.Free;
-  inherited;
 end;
 
 end.

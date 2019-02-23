@@ -16,10 +16,13 @@ uses
   Vcl.StdCtrls,
   Vcl.Buttons,
   Vcl.ExtCtrls,
+  Lib.HTTPConsts,
   Lib.HTTPContent,
   Lib.HTTPServer,
+  Lib.HTTPServer.MiddlewareStatic,
   Lib.JSON.Format,
-  Lib.JSON.Store;
+  Lib.JSON.Store,
+  WebApi;
 
 type
   TForm3 = class(TForm)
@@ -51,17 +54,16 @@ type
     procedure SpeedButton2Click(Sender: TObject);
     procedure SpeedButton1Click(Sender: TObject);
     procedure SpeedButton3Click(Sender: TObject);
-    procedure OnConfigChange(Sender: TObject);
   private
     FStore: TJSONStore;
     FCount: Integer;
     FServer: THTTPServer;
     FConnections: THTTPConnections;
+    procedure OnAcceptClient(Sender: TObject);
     procedure OnClientsChange(Sender: TObject);
     procedure OnRequest(Sender: TObject);
     procedure OnResponse(Sender: TObject);
     procedure SetServerControls;
-    procedure DoUpdateConfig;
   public
   end;
 
@@ -138,16 +140,6 @@ begin
 
 end;
 
-procedure TForm3.DoUpdateConfig;
-begin
-  if Assigned(FServer) then
-  begin
-    FServer.Home:=Edit3.Text;
-    FServer.Aliases.Assign(Memo2.Lines);
-    FServer.KeepAliveTimeout:=StrToInt64Def(Edit4.Text,10);
-  end;
-end;
-
 procedure TForm3.SpeedButton1Click(Sender: TObject);
 begin
   ContentMemo.BringToFront;
@@ -180,8 +172,7 @@ begin
     end;
     FServer:=THTTPServer.Create;
     try
-      FServer.Connections:=FConnections;
-      DoUpdateConfig;
+      FServer.OnAccept:=OnAcceptClient;
       FServer.Start(Edit1.Text,StrToInt(Edit2.Text));
       RequestsMemo.Lines.Add('Server started'#13#10);
       SetServerControls;
@@ -229,9 +220,29 @@ begin
   RequestsMemo.Clear;
 end;
 
-procedure TForm3.OnConfigChange(Sender: TObject);
+procedure TForm3.OnAcceptClient(Sender: TObject);
+var
+  C: THTTPServerClient;
+  MiddlewareStatic: TMiddlewareStatic;
+  MiddlewareWebApi: TMiddlewareWebApi;
 begin
-  DoUpdateConfig;
+
+  C:=THTTPServerClient.CreateOn(FServer.AcceptClient);
+
+  MiddlewareStatic:=TMiddlewareStatic.Create;
+  MiddlewareStatic.Aliases.Assign(Memo2.Lines);
+  MiddlewareStatic.Home:=Edit3.Text;
+
+  C.UseMiddleware(METHOD_GET,'/',MiddlewareStatic);
+
+  MiddlewareWebApi:=TMiddlewareWebApi.Create;
+
+  C.UseMiddleware(METHOD_GET,'/api/',MiddlewareWebApi);
+
+  C.KeepAliveTimeout:=StrToInt64Def(Edit4.Text,10);
+
+  FConnections.AddClient(C);
+
 end;
 
 end.
