@@ -27,7 +27,6 @@ type
     FOnRequest: TNotifyEvent;
     FOnResponseHeader: TNotifyEvent;
     FOnResponse: TNotifyEvent;
-    FOnResponseComplete: TNotifyEvent;
     FOnIdle: TNotifyEvent;
     FOnMessage: TNotifyEvent;
     FMessage: string;
@@ -37,7 +36,6 @@ type
     procedure SetupKeepAliveTimeout(Value: Integer);
     procedure SetKeepAliveTimeout(Value: Integer);
     procedure SetKeepAlive(Value: Boolean);
-    procedure OnNextRequestGet(Sender: TObject);
  protected
     procedure DoExcept(Code: Integer); override;
     procedure DoTimeout(Code: Integer); override;
@@ -48,7 +46,6 @@ type
     procedure DoReadComplete; override;
     procedure DoMessage(const TextMessage: string);
     procedure DoConnectionClose;
-    procedure DoResponseComplete;
     procedure DoRequest;
     procedure DoNextRequestGet;
   public
@@ -60,7 +57,6 @@ type
     property OnResource: TNotifyEvent read FOnResource write FOnResource;
     property OnResponseHeader: TNotifyEvent read FOnResponseHeader write FOnResponseHeader;
     property OnResponse: TNotifyEvent read FOnResponse write FOnResponse;
-    property OnResponseComplete: TNotifyEvent read FOnResponseComplete write FOnResponseComplete;
     property OnMessage: TNotifyEvent read FOnMessage write FOnMessage;
     property OnIdle: TNotifyEvent read FOnIdle write FOnIdle;
     property OnDestroy;
@@ -82,7 +78,6 @@ begin
   FActive:=False;
   FResponseTimeout:=10000;
   FBuffer.Init;
-  OnResponseComplete:=OnNextRequestGet; //обработчик по-умолчанию при завершении загрузки ресурса (переход к загрузке следующего ресурса)
 end;
 
 destructor THTTPClient.Destroy;
@@ -117,11 +112,6 @@ begin
   end;
 end;
 
-procedure THTTPClient.DoResponseComplete;
-begin
-  if Assigned(FOnResponseComplete) then FOnResponseComplete(Self);
-end;
-
 procedure THTTPClient.DoExcept(Code: Integer);
 begin
   FActive:=False;
@@ -147,6 +137,8 @@ end;
 
 procedure THTTPClient.DoConnectionClose;
 begin
+  SetTimeout(0,TIMEOUT_READ);
+  SetupKeepAliveTimeout(0);
   DoMessage('client-close ('+FSocket.ToString+')');
   FActive:=False;
   FHost:='';
@@ -155,17 +147,9 @@ end;
 
 procedure THTTPClient.DoClose;
 begin
-  SetTimeout(0,TIMEOUT_READ);
-  DoConnectionClose;
-  DoResponseComplete;
   inherited;
-end;
-
-procedure THTTPClient.OnNextRequestGet(Sender: TObject);
-begin
+  DoConnectionClose;
   DoNextRequestGet;
-  if not FActive then
-  if Assigned(FOnIdle) then FOnIdle(Self);
 end;
 
 procedure THTTPClient.DoRead;
@@ -184,8 +168,6 @@ var
   TimeoutValue: Integer;
 begin
 
-  SetTimeout(0,TIMEOUT_READ);
-
   Response.SetResource(Request.Resource);
 
   if not KeepAlive or Response.ConnectionClose then
@@ -202,13 +184,14 @@ begin
     if TagTimeout<>'' then
       TimeoutValue:=StrToIntDef(HTTPGetTagValue(TagTimeout),TimeoutValue);
 
+    SetTimeout(0,TIMEOUT_READ);
     SetupKeepAliveTimeout(TimeoutValue);
 
   end;
 
   if Assigned(FOnResponse) then FOnResponse(Self);
 
-  DoResponseComplete;
+  DoNextRequestGet;
 
 end;
 
@@ -243,6 +226,9 @@ begin
     SendRequest;
 
   end;
+
+  if not FActive then
+  if Assigned(FOnIdle) then FOnIdle(Self);
 
 end;
 
