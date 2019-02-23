@@ -23,6 +23,7 @@ uses
   Vcl.Samples.Gauges,
   Vcl.Buttons,
   Lib.JSON.Store,
+  Lib.HTTPConsts,
   Lib.HTTPClient,
   Lib.HTTPContent,
   Form.Request;
@@ -291,7 +292,7 @@ begin
   if Length(C.Response.Content)>0 then
   begin
     S:=Edit3.Text+C.Response.ResourceName;
-    if C.Response.ResultCode=200 then
+    if C.Response.ResultCode=HTTPCODE_SUCCESS then
       TFile.WriteAllBytes(S,C.Response.Content)
     else
       TFile.WriteAllBytes(S,C.Response.Content);
@@ -301,6 +302,13 @@ begin
   C.Response.ShowContentTo(Memo2.Lines);
 
   ShowResponseResultCode(C.Response.ResultCode);
+
+  if C.Response.ResultCode=HTTPCODE_MOVED_PERMANENTLY then
+  begin
+    C.Request.ParseURL(C.Response.GetHeaderValue('Location'));
+    C.Request.AddHeaderValue('Host',C.Request.Host);
+    C.SendRequest;
+  end;
 
 end;
 

@@ -47,6 +47,32 @@ function BytesEndsWith(const B,E: TBytes): Boolean;
 
 implementation
 
+procedure TRingBuffer<T>.Init(ADataSize: Integer=1024);
+begin
+  DataSize:=ADataSize;
+  SetLength(Data,DataSize);
+  StartIndex:=0;
+  EndIndex:=0;
+end;
+
+function TRingBuffer<T>.EOF: Boolean;
+begin
+  Result:=StartIndex=EndIndex;
+end;
+
+procedure TRingBuffer<T>.Write(const S: T);
+begin
+  Data[EndIndex]:=S;
+  EndIndex:=(EndIndex+1) mod DataSize;
+  if EOF then raise Exception.Create('buffer_overflow');
+end;
+
+function TRingBuffer<T>.Read: T;
+begin
+  Result:=Data[StartIndex];
+  StartIndex:=(StartIndex+1) mod DataSize;
+end;
+
 function SameMap(const V: array of string; const D: string;
   O1,O2: Integer; CompareProc: TFunc<string,Boolean>): string;
 var I: Integer;
@@ -249,7 +275,7 @@ var P: Integer;
 begin
   Result:='';
   P:=Tag.IndexOf('=');
-  if P<>-1 then Result:=Tag.Substring(P+1);
+  if P<>-1 then Result:=Tag.Substring(P+1).Trim;
 end;
 
 function HTTPEndedChunked(const B: TBytes): Boolean;
@@ -299,32 +325,6 @@ begin
 
   if IsRelativePath(Result) then Result:=HomePath+Result;
 
-end;
-
-procedure TRingBuffer<T>.Init(ADataSize: Integer=1024);
-begin
-  DataSize:=ADataSize;
-  SetLength(Data,DataSize);
-  StartIndex:=0;
-  EndIndex:=0;
-end;
-
-function TRingBuffer<T>.EOF: Boolean;
-begin
-  Result:=StartIndex=EndIndex;
-end;
-
-procedure TRingBuffer<T>.Write(const S: T);
-begin
-  Data[EndIndex]:=S;
-  EndIndex:=(EndIndex+1) mod DataSize;
-  if EOF then raise Exception.Create('buffer_overflow');
-end;
-
-function TRingBuffer<T>.Read: T;
-begin
-  Result:=Data[StartIndex];
-  StartIndex:=(StartIndex+1) mod DataSize;
 end;
 
 function HTTPResourceToLocal(const Resource: string): string;
