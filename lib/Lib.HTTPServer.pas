@@ -21,7 +21,7 @@ type
 
   THTTPServerClient = class(THTTPSocket)
   private
-    FMiddleware: array of IMiddleware;
+    FMiddlewares: array of IMiddleware;
     FOnRequest: TNotifyEvent;
     FOnResponse: TNotifyEvent;
     FKeepConnection: Boolean;
@@ -59,7 +59,7 @@ end;
 
 procedure THTTPServerClient.Use(Middleware: IMiddleware);
 begin
-  Insert(Middleware,FMiddleware,Length(FMiddleware));
+  FMiddlewares:=FMiddlewares+[Middleware];
 end;
 
 procedure THTTPServerClient.DoClose;
@@ -104,7 +104,7 @@ function THTTPServerClient.DoUseMiddlewares: Boolean;
 var Middleware: IMiddleware;
 begin
   Result:=False;
-  for Middleware in FMiddleware do
+  for Middleware in FMiddlewares do
   if Middleware.Use(Request,Response) then Exit(True);
 end;
 
