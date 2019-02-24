@@ -5,7 +5,6 @@ interface
 uses
   System.SysUtils,
   System.Classes,
-  System.Generics.Collections,
   Lib.HTTPConsts,
   Lib.HTTPUtils,
   Lib.HTTPSocket,
@@ -25,11 +24,7 @@ type
     FMiddleware: array of IMiddleware;
     FOnRequest: TNotifyEvent;
     FOnResponse: TNotifyEvent;
-    FReadTimeout: Cardinal;
-    FKeepAliveTimeout: Integer;
-    FKeepAlive: Boolean;
-    procedure SetReadTimeout(Value: Cardinal);
-    procedure SetKeepAliveTimeout(Value: Integer);
+    FKeepConnection: Boolean;
   protected
     procedure DoClose; override;
     procedure DoTimeout(Code: Integer); override;
@@ -43,42 +38,18 @@ type
     procedure Use(Middleware: IMiddleware);
     property OnRequest: TNotifyEvent read FOnRequest write FOnRequest;
     property OnResponse: TNotifyEvent read FOnResponse write FOnResponse;
-    property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
-  end;
-
-  THTTPConnections = class
-  private
-    FClients: TList<TObject>;
-    FOnChange: TNotifyEvent;
-  protected
-    procedure DoChange;
-    function GetClientsCount: Integer;
-    procedure DoDestroy(Client: TObject);
-  public
-    procedure AddClient(Client: THTTPServerClient);
-    procedure RemoveClient(Client: TObject);
-  public
-    constructor Create;
-    destructor Destroy; override;
-    procedure DropClients;
-    property ClientsCount: Integer read GetClientsCount;
-    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+    property OnDestroy;
   end;
 
 implementation
-
-const
-  TIMEOUT_KEEPALIVE=1;
-  TIMEOUT_READ=2;
 
 { THTTPServerClient }
 
 constructor THTTPServerClient.Create;
 begin
   inherited;
-  FKeepAlive:=True;
-  FReadTimeout:=10000;
-  SetReadTimeout(FReadTimeout);
+  FKeepConnection:=True;
+  SetReadTimeout(ReadTimeout);
 end;
 
 destructor THTTPServerClient.Destroy;
@@ -91,19 +62,6 @@ begin
   Insert(Middleware,FMiddleware,Length(FMiddleware));
 end;
 
-procedure THTTPServerClient.SetReadTimeout(Value: Cardinal);
-begin
-  SetTimeout(Value,TIMEOUT_READ);
-end;
-
-procedure THTTPServerClient.SetKeepAliveTimeout(Value: Integer);
-begin
-  if FKeepAlive then
-    SetTimeout(Value*1000,TIMEOUT_KEEPALIVE)
-  else
-    SetTimeout(0,TIMEOUT_KEEPALIVE);
-end;
-
 procedure THTTPServerClient.DoClose;
 begin
   inherited;
@@ -113,11 +71,11 @@ end;
 procedure THTTPServerClient.DoRead;
 begin
 
-  SetReadTimeout(FReadTimeout);
+  SetReadTimeout(ReadTimeout);
 
   while Request.DoRead(Read(20000))>0 do; // call DoReadComplete
 
-  if not FKeepAlive then Free;
+  if not FKeepConnection then Free;
 
 end;
 
@@ -128,10 +86,11 @@ begin
 
   if Assigned(FOnRequest) then FOnRequest(Self);
 
-  FKeepAlive:=(KeepAliveTimeout>0) and Request.ConnectionKeepAlive;
+  FKeepConnection:=KeepAlive and (KeepAliveTimeout>0) and Request.ConnectionKeepAlive;
 
   DoResponse;
 
+  if FKeepConnection then
   SetKeepAliveTimeout(KeepAliveTimeout);
 
 end;
@@ -154,7 +113,7 @@ begin
 
   Response.Reset;
   Response.Protocol:=PROTOCOL_HTTP11;
-  Response.AddHeaderKeepAlive(FKeepAlive,KeepAliveTimeout);
+  Response.AddHeaderKeepAlive(FKeepConnection,KeepAliveTimeout);
 
   if Request.Protocol<>PROTOCOL_HTTP11 then
   begin
@@ -185,53 +144,6 @@ begin
 
   if Assigned(FOnResponse) then FOnResponse(Self);
 
-end;
-
-{ THTTPConnections }
-
-constructor THTTPConnections.Create;
-begin
-  FClients:=TList<TObject>.Create;
-end;
-
-destructor THTTPConnections.Destroy;
-begin
-  DropClients;
-  FClients.Free;
-  inherited;
-end;
-
-procedure THTTPConnections.DoChange;
-begin
-  if Assigned(FOnChange) then FOnChange(Self);
-end;
-
-procedure THTTPConnections.AddClient(Client: THTTPServerClient);
-begin
-  FClients.Add(Client);
-  Client.OnDestroy:=DoDestroy;
-  DoChange;
-end;
-
-procedure THTTPConnections.RemoveClient(Client: TObject);
-begin
-  FClients.Remove(Client);
-  DoChange;
-end;
-
-function THTTPConnections.GetClientsCount: Integer;
-begin
-  Result:=FClients.Count;
-end;
-
-procedure THTTPConnections.DropClients;
-begin
-  while FClients.Count>0 do FClients[0].Free;
-end;
-
-procedure THTTPConnections.DoDestroy(Client: TObject);
-begin
-  RemoveClient(Client);
 end;
 
 end.

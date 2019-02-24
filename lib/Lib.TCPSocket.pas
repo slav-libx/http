@@ -51,6 +51,7 @@ type
   public
     constructor Create; virtual;
     destructor Destroy; override;
+    function ToString: string; override;
     procedure DefaultHandler(var Message); override;
     procedure DeferFree;
     property ExceptionCode: Integer read FExceptionCode;
@@ -156,6 +157,11 @@ begin
   if FEventHandle<>0 then DeallocateHWnd(FEventHandle);
   if Assigned(FOnDestroy) then FOnDestroy(Self);
   inherited;
+end;
+
+function TTCPSocket.ToString: string;
+begin
+  Result:=inherited+'('+FSocket.ToString+')';
 end;
 
 procedure TTCPSocket.Close;

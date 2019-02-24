@@ -5,11 +5,6 @@ interface
 uses
   System.SysUtils,
   System.Classes,
-  System.Math,
-  System.SyncObjs,
-  System.NetEncoding,
-  System.Generics.Collections,
-  Winapi.Winsock2,
   Lib.TCPSocket,
   Lib.HTTPConsts,
   Lib.HTTPUtils,
@@ -18,7 +13,7 @@ uses
 type
   THTTPClient = class(THTTPSocket)
   private
-    FBuffer: TRingBuffer<string>;
+    FURLs: TRingBuffer<string>;
     FHost: string;
     FHostName: string;
     FPort: Integer;
@@ -30,11 +25,6 @@ type
     FOnIdle: TNotifyEvent;
     FOnMessage: TNotifyEvent;
     FMessage: string;
-    FKeepAlive: Boolean;
-    FKeepAliveTimeout: Integer;
-    FReadTimeout: Cardinal;
-    procedure SetReadTimeout(Value: Cardinal);
-    procedure SetKeepAliveTimeout(Value: Integer);
  protected
     procedure DoExcept(Code: Integer); override;
     procedure DoTimeout(Code: Integer); override;
@@ -59,43 +49,22 @@ type
     property OnMessage: TNotifyEvent read FOnMessage write FOnMessage;
     property OnIdle: TNotifyEvent read FOnIdle write FOnIdle;
     property OnDestroy;
-    property KeepAlive: Boolean read FKeepAlive write FKeepAlive;
-    property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
-    property ReadTimeout: Cardinal read FReadTimeout write FReadTimeout;
     property Message: string read FMessage;
   end;
 
 implementation
 
-const
-  TIMEOUT_KEEPALIVE=1;
-  TIMEOUT_READ=2;
-
 constructor THTTPClient.Create;
 begin
   inherited;
   FActive:=False;
-  FReadTimeout:=10000;
-  FBuffer.Init;
+  FURLs.Init;
 end;
 
 destructor THTTPClient.Destroy;
 begin
-  DoMessage('client-destroy');
+  DoMessage(ToString+' destroy');
   inherited;
-end;
-
-procedure THTTPClient.SetReadTimeout(Value: Cardinal);
-begin
-  SetTimeout(Value,TIMEOUT_READ);
-end;
-
-procedure THTTPClient.SetKeepAliveTimeout(Value: Integer);
-begin
-  if FKeepAlive then
-    SetTimeout(Value*1000,TIMEOUT_KEEPALIVE)
-  else
-    SetTimeout(0,TIMEOUT_KEEPALIVE);
 end;
 
 procedure THTTPClient.DoExcept(Code: Integer);
@@ -108,22 +77,22 @@ end;
 procedure THTTPClient.DoTimeout(Code: Integer);
 begin
   case Code of
-  TIMEOUT_KEEPALIVE: DoMessage('client-keepalive-timeout ('+FSocket.ToString+')');
-  TIMEOUT_READ: DoMessage('client-read-timeout ('+FSocket.ToString+')');
-  else DoMessage('client-timeout ('+FSocket.ToString+')');
+  TIMEOUT_KEEPALIVE: DoMessage(ToString+' keepalive-timeout');
+  TIMEOUT_READ: DoMessage(ToString+' read-timeout');
+  else DoMessage(ToString+' timeout');
   end;
   DoClose;
 end;
 
 procedure THTTPClient.DoOpen;
 begin
-  DoMessage('client-open ('+FSocket.ToString+')');
+  DoMessage(ToString+' open');
   inherited;
 end;
 
 procedure THTTPClient.DoConnectionClose;
 begin
-  DoMessage('client-close ('+FSocket.ToString+')');
+  DoMessage(ToString+' close');
   FHost:='';
   Close;
 end;
@@ -204,13 +173,13 @@ end;
 procedure THTTPClient.DoNextRequestGet;
 begin
 
-  while not FActive and not FBuffer.EOF do
+  while not FActive and not FURLs.EOF do
   begin
 
     Request.Reset;
     Request.Protocol:=PROTOCOL_HTTP11;
     Request.Method:=METHOD_GET;
-    Request.ParseURL(FBuffer.Read);
+    Request.ParseURL(FURLs.Read);
     Request.AddHeaderValue('Host',Request.Host);
     Request.AddHeaderKeepAlive(KeepAlive,KeepAliveTimeout);
 
@@ -263,7 +232,7 @@ end;
 
 procedure THTTPClient.Get(const URL: string);
 begin
-  FBuffer.Write(URL);
+  FURLs.Write(URL);
   DoNextRequestGet;
 end;
 

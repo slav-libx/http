@@ -7,7 +7,7 @@ object Form3: TForm3
   ClientWidth = 577
   Color = clBtnFace
   Constraints.MinHeight = 400
-  Constraints.MinWidth = 470
+  Constraints.MinWidth = 500
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -24,36 +24,29 @@ object Form3: TForm3
   PixelsPerInch = 96
   TextHeight = 13
   object Label3: TLabel
-    Left = 13
-    Top = 28
+    Left = 14
+    Top = 18
     Width = 22
     Height = 13
     Caption = 'Host'
   end
   object Label4: TLabel
-    Left = 13
-    Top = 61
+    Left = 14
+    Top = 50
     Width = 27
     Height = 13
     Caption = 'Home'
   end
   object Label5: TLabel
     Left = 14
-    Top = 96
+    Top = 81
     Width = 33
     Height = 13
     Caption = 'Aliases'
   end
-  object Label6: TLabel
-    Left = 56
-    Top = 162
-    Width = 92
-    Height = 13
-    Caption = 'Keep-Alive Timeout'
-  end
   object Label2: TLabel
     Left = 327
-    Top = 164
+    Top = 152
     Width = 33
     Height = 13
     Anchors = [akTop, akRight]
@@ -70,8 +63,8 @@ object Form3: TForm3
   end
   object Button1: TButton
     Left = 486
-    Top = 158
-    Width = 83
+    Top = 146
+    Width = 84
     Height = 25
     Anchors = [akTop, akRight]
     Caption = 'Start'
@@ -80,7 +73,7 @@ object Form3: TForm3
   end
   object Edit2: TEdit
     Left = 247
-    Top = 27
+    Top = 15
     Width = 31
     Height = 21
     TabOrder = 1
@@ -88,9 +81,9 @@ object Form3: TForm3
   end
   object RequestsMemo: TMemo
     Left = 0
-    Top = 192
+    Top = 180
     Width = 577
-    Height = 244
+    Height = 254
     Anchors = [akLeft, akTop, akRight, akBottom]
     ReadOnly = True
     ScrollBars = ssVertical
@@ -98,7 +91,7 @@ object Form3: TForm3
   end
   object Edit1: TEdit
     Left = 56
-    Top = 27
+    Top = 15
     Width = 185
     Height = 21
     TabOrder = 3
@@ -106,7 +99,7 @@ object Form3: TForm3
   end
   object Edit3: TEdit
     Left = 56
-    Top = 59
+    Top = 47
     Width = 513
     Height = 21
     Anchors = [akLeft, akTop, akRight]
@@ -115,7 +108,7 @@ object Form3: TForm3
   end
   object Memo2: TMemo
     Left = 56
-    Top = 91
+    Top = 79
     Width = 513
     Height = 57
     Anchors = [akLeft, akTop, akRight]
@@ -126,8 +119,8 @@ object Form3: TForm3
     TabOrder = 5
   end
   object Edit4: TEdit
-    Left = 161
-    Top = 159
+    Left = 178
+    Top = 148
     Width = 31
     Height = 21
     TabOrder = 6
@@ -135,9 +128,9 @@ object Form3: TForm3
   end
   object ContentMemo: TMemo
     Left = 0
-    Top = 192
+    Top = 180
     Width = 577
-    Height = 244
+    Height = 254
     Anchors = [akLeft, akTop, akRight, akBottom]
     ReadOnly = True
     ScrollBars = ssVertical
@@ -190,7 +183,7 @@ object Form3: TForm3
     object Button4: TButton
       Left = 494
       Top = 3
-      Width = 75
+      Width = 76
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'Clear'
@@ -200,7 +193,7 @@ object Form3: TForm3
   end
   object Button2: TButton
     Left = 358
-    Top = 158
+    Top = 146
     Width = 122
     Height = 25
     Anchors = [akTop, akRight]
@@ -210,12 +203,22 @@ object Form3: TForm3
   end
   object ResponseMemo: TMemo
     Left = 0
-    Top = 192
+    Top = 180
     Width = 577
-    Height = 244
+    Height = 254
     Anchors = [akLeft, akTop, akRight, akBottom]
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 10
+  end
+  object CheckBox1: TCheckBox
+    Left = 56
+    Top = 151
+    Width = 115
+    Height = 17
+    Caption = 'Keep-Alive Timeout'
+    DoubleBuffered = True
+    ParentDoubleBuffered = False
+    TabOrder = 11
   end
 end
