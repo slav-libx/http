@@ -92,7 +92,7 @@ end;
 
 procedure THTTPClient.SetKeepAliveTimeout(Value: Integer);
 begin
-  if KeepAlive then
+  if FKeepAlive then
     SetTimeout(Value*1000,TIMEOUT_KEEPALIVE)
   else
     SetTimeout(0,TIMEOUT_KEEPALIVE);

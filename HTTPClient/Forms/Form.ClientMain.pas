@@ -276,7 +276,7 @@ begin
   Memo1.Lines.Add(C.Request.Method+' '+C.Request.Resource);
   Memo1.Lines.AddStrings(C.Request.Headers);
   Memo1.Lines.Add('');
-  C.Request.ShowContentTo(Memo3.Lines);
+  C.Request.ShowTextContentTo(Memo3.Lines);
 end;
 
 procedure TForm2.OnClientResponse(Sender: TObject);
@@ -299,7 +299,7 @@ begin
     ShowPicture(S,C.Response.ResourceName);
   end;
 
-  C.Response.ShowContentTo(Memo2.Lines);
+  C.Response.ShowTextContentTo(Memo2.Lines);
 
   ShowResponseResultCode(C.Response.ResultCode);
 

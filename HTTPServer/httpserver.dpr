@@ -2,7 +2,7 @@ program httpserver;
 
 uses
   Vcl.Forms,
-  WebApi in 'Units\WebApi.pas',
+  Lib.HTTPServer.WebApi in 'Units\Lib.HTTPServer.WebApi.pas',
   Form.ServerMain in 'Forms\Form.ServerMain.pas' {Form3};
 
 {$R *.res}

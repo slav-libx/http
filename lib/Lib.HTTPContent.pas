@@ -52,7 +52,7 @@ type
     procedure Assign(Source: TContent); virtual;
     function DoRead(const B: TBytes): Integer;
     function SendHeaders: string; virtual;
-    procedure ShowContentTo(Strings: TStrings);
+    procedure ShowTextContentTo(Strings: TStrings);
   public
     property ContentLength: Integer read FContentLength;
     property ContentReaded: Integer read FContentReaded;
@@ -310,24 +310,21 @@ begin
 
 end;
 
-procedure TContent.ShowContentTo(Strings: TStrings);
-var C: string;
+procedure TContent.ShowTextContentTo(Strings: TStrings);
+var ContentType: string;
 begin
 
   Strings.Clear;
 
-  C:=GetHeaderValue('Content-Type');
+  ContentType:=GetHeaderValue('Content-Type');
 
   try
 
-    if (C='') or
-       (C.StartsWith('text/')) or
-       (C='application/x-www-form-urlencoded') or
-       (C='application/javascript') then
+    if HTTPContentIsText(ContentType) then
       Strings.Text:=TEncoding.ANSI.GetString(Content)
     else
 
-    if C.StartsWith('application/json') then
+    if HTTPContentIsJSON(ContentType) then
       Strings.Text:=ToJSON(TJSONObject.ParseJSONValue(
         TEncoding.UTF8.GetString(Content)));
 
@@ -436,13 +433,15 @@ begin
 end;
 
 procedure TResponse.SetResource(const Resource: string);
-var Ext: string;
+var ContentType,Ext: string;
 begin
+
+  ContentType:=GetHeaderValue('Content-Type');
 
   ResourceName:=HTTPDecodeResourceName(HTTPExtractResourceName(Resource));
   LocalResource:=HTTPResourceToLocal(Resource);
 
-  Ext:=HTTPGetContentExt(GetHeaderValue('Content-Type'));
+  Ext:=HTTPGetContentExt(ContentType);
 
   if ResultCode<>HTTPCODE_SUCCESS then
     ResourceName:='res'
@@ -450,7 +449,7 @@ begin
   if ResourceName='' then
     ResourceName:='file';
 
-  if GetHeaderValue('Content-Type')<>HTTPGetMIMEType(ExtractFileExt(ResourceName)) then
+  if ContentType<>HTTPGetMIMEType(ExtractFileExt(ResourceName)) then
     ResourceName:=ChangeFileExt(ResourceName,Ext);
 
 end;

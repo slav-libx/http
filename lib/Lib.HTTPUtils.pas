@@ -42,6 +42,8 @@ function HTTPGetHeaderLength(const B: TBytes): Integer;
 function HTTPResourceToLocalFileName(const Resource: string; const HomePath: string; Aliases: TStrings): string;
 function HTTPResourceToLocal(const Resource: string): string;
 function HTTPExtractFileName(const Resource: string): string;
+function HTTPContentIsText(const ContentType: string): Boolean;
+function HTTPContentIsJSON(const ContentType: string): Boolean;
 
 function BytesEndsWith(const B,E: TBytes): Boolean;
 
@@ -337,6 +339,19 @@ var I: Integer;
 begin
   I:=Resource.LastDelimiter('/\');
   Result:=Resource.SubString(I+1);
+end;
+
+function HTTPContentIsText(const ContentType: string): Boolean;
+begin
+  Result:=(ContentType='') or
+    ContentType.StartsWith('text/') or
+    ContentType.StartsWith('application/x-www-form-urlencoded') or
+    ContentType.StartsWith('application/javascript');
+end;
+
+function HTTPContentIsJSON(const ContentType: string): Boolean;
+begin
+  Result:=ContentType.StartsWith('application/json');
 end;
 
 end.

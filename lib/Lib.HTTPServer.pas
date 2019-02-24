@@ -6,19 +6,23 @@ uses
   System.SysUtils,
   System.Classes,
   System.Generics.Collections,
-  Lib.TCPSocket,
   Lib.HTTPConsts,
   Lib.HTTPUtils,
   Lib.HTTPSocket,
-  Lib.HTTPServer.Middleware;
+  Lib.TCPSocket,
+  Lib.HTTPContent;
 
 type
+
+  IMiddleware = interface
+    function Use(Request: TRequest; Response: TResponse): Boolean;
+  end;
 
   THTTPServer = class(TTCPServer);
 
   THTTPServerClient = class(THTTPSocket)
   private
-    FMiddleware: array of TMiddleware;
+    FMiddleware: array of IMiddleware;
     FOnRequest: TNotifyEvent;
     FOnResponse: TNotifyEvent;
     FReadTimeout: Cardinal;
@@ -27,16 +31,16 @@ type
     procedure SetReadTimeout(Value: Cardinal);
     procedure SetKeepAliveTimeout(Value: Integer);
   protected
+    procedure DoClose; override;
     procedure DoTimeout(Code: Integer); override;
     procedure DoRead; override;
     procedure DoResponse;
     procedure DoReadComplete; override;
-    function DoMethodMiddleware: Boolean;
-    function DoUseMiddleware: Boolean;
+    function DoUseMiddlewares: Boolean;
   public
     constructor Create; override;
     destructor Destroy; override;
-    procedure UseMiddleware(const Method,Route: string; Middleware: IMiddleware);
+    procedure Use(Middleware: IMiddleware);
     property OnRequest: TNotifyEvent read FOnRequest write FOnRequest;
     property OnResponse: TNotifyEvent read FOnResponse write FOnResponse;
     property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
@@ -45,17 +49,12 @@ type
   THTTPConnections = class
   private
     FClients: TList<TObject>;
-    FOnClientsChange: TNotifyEvent;
-    FOnRequest: TNotifyEvent;
-    FOnResponse: TNotifyEvent;
+    FOnChange: TNotifyEvent;
   protected
-    procedure DoClientsChange;
+    procedure DoChange;
     function GetClientsCount: Integer;
-  public
-    procedure DoResponse(Client: TObject);
-    procedure DoRequest(Client: TObject);
-    procedure DoClose(Client: TObject);
     procedure DoDestroy(Client: TObject);
+  public
     procedure AddClient(Client: THTTPServerClient);
     procedure RemoveClient(Client: TObject);
   public
@@ -63,9 +62,7 @@ type
     destructor Destroy; override;
     procedure DropClients;
     property ClientsCount: Integer read GetClientsCount;
-    property OnClientsChange: TNotifyEvent read FOnClientsChange write FOnClientsChange;
-    property OnRequest: TNotifyEvent read FOnRequest write FOnRequest;
-    property OnResponse: TNotifyEvent read FOnResponse write FOnResponse;
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
 implementation
@@ -89,9 +86,9 @@ begin
   inherited;
 end;
 
-procedure THTTPServerClient.UseMiddleware(const Method,Route: string; Middleware: IMiddleware);
+procedure THTTPServerClient.Use(Middleware: IMiddleware);
 begin
-  Insert(TMiddleware.Create(Method,Route,Middleware),FMiddleware,Length(FMiddleware));
+  Insert(Middleware,FMiddleware,Length(FMiddleware));
 end;
 
 procedure THTTPServerClient.SetReadTimeout(Value: Cardinal);
@@ -105,6 +102,12 @@ begin
     SetTimeout(Value*1000,TIMEOUT_KEEPALIVE)
   else
     SetTimeout(0,TIMEOUT_KEEPALIVE);
+end;
+
+procedure THTTPServerClient.DoClose;
+begin
+  inherited;
+  Free;
 end;
 
 procedure THTTPServerClient.DoRead;
@@ -138,22 +141,12 @@ begin
   Free;
 end;
 
-function THTTPServerClient.DoMethodMiddleware: Boolean;
-var M: TMiddleware;
+function THTTPServerClient.DoUseMiddlewares: Boolean;
+var Middleware: IMiddleware;
 begin
   Result:=False;
-  for M in FMiddleware do
-  if Request.Method=M.Method then Exit(True);
-end;
-
-function THTTPServerClient.DoUseMiddleware: Boolean;
-var M: TMiddleware;
-begin
-  Result:=False;
-  for M in FMiddleware do
-  if Request.Method=M.Method then
-  if Request.Resource.StartsWith(M.Route) then
-  if M.Middleware.Use(Request,Response) then Exit(True);
+  for Middleware in FMiddleware do
+  if Middleware.Use(Request,Response) then Exit(True);
 end;
 
 procedure THTTPServerClient.DoResponse;
@@ -170,58 +163,21 @@ begin
 
   end else
 
-  if not DoMethodMiddleware then
+  if not DoUseMiddlewares then
   begin
 
-    Response.SetResult(HTTPCODE_METHOD_NOT_ALLOWED,'Method Not Allowed');
+    if Request.Method=METHOD_GET then
+    begin
 
-  end else
+      Response.SetResult(HTTPCODE_NOT_FOUND,'Not Found');
 
-  if not DoUseMiddleware then
-  begin
+      Response.AddContentText(content_404,HTTPGetMIMEType('.html'));
 
-    Response.SetResult(HTTPCODE_NOT_FOUND,'Not Found');
+    end else
 
-    Response.AddContentText(content_404,HTTPGetMIMEType('.html'));
+      Response.SetResult(HTTPCODE_METHOD_NOT_ALLOWED,'Method Not Allowed');
 
   end;
-
-//      FileName:=HTTPResourceToLocalFileName(Request.Resource,FHome,FAliases);
-//
-//      if FileExists(FileName) then
-//      begin
-//
-//        Response.SetResult(HTTPCODE_SUCCESS,'OK');
-//
-//        Response.AddContentFile(FileName);
-//
-//      end else
-//
-//      if FileName='' then
-//      begin
-//
-//        Response.SetResult(HTTPCODE_BAD_REQUEST,'Bad Request');
-//
-//      end else
-//      begin
-//
-//        Response.SetResult(HTTPCODE_NOT_FOUND,'Not Found');
-//
-//        Response.AddContentText(content_404,HTTPGetMIMEType('.html'));
-//
-//      end
-//    end else
-//    begin
-//
-//      Response.SetResult(HTTPCODE_METHOD_NOT_ALLOWED,'Method Not Allowed');
-//
-//    end;
-//
-//  end else
-//  begin
-//
-//
-//  end;
 
   WriteString(Response.SendHeaders);
 
@@ -245,25 +201,22 @@ begin
   inherited;
 end;
 
-procedure THTTPConnections.DoClientsChange;
+procedure THTTPConnections.DoChange;
 begin
-  if Assigned(FOnClientsChange) then FOnClientsChange(Self);
+  if Assigned(FOnChange) then FOnChange(Self);
 end;
 
 procedure THTTPConnections.AddClient(Client: THTTPServerClient);
 begin
   FClients.Add(Client);
-  Client.OnRequest:=DoRequest;
-  Client.OnResponse:=DoResponse;
-  Client.OnClose:=DoClose;
   Client.OnDestroy:=DoDestroy;
-  DoClientsChange;
+  DoChange;
 end;
 
 procedure THTTPConnections.RemoveClient(Client: TObject);
 begin
   FClients.Remove(Client);
-  DoClientsChange;
+  DoChange;
 end;
 
 function THTTPConnections.GetClientsCount: Integer;
@@ -274,21 +227,6 @@ end;
 procedure THTTPConnections.DropClients;
 begin
   while FClients.Count>0 do FClients[0].Free;
-end;
-
-procedure THTTPConnections.DoResponse(Client: TObject);
-begin
-  if Assigned(FOnResponse) then FOnResponse(Client);
-end;
-
-procedure THTTPConnections.DoRequest(Client: TObject);
-begin
-  if Assigned(FOnRequest) then FOnRequest(Client);
-end;
-
-procedure THTTPConnections.DoClose(Client: TObject);
-begin
-  Client.Free;
 end;
 
 procedure THTTPConnections.DoDestroy(Client: TObject);

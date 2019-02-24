@@ -19,10 +19,10 @@ uses
   Lib.HTTPConsts,
   Lib.HTTPContent,
   Lib.HTTPServer,
-  Lib.HTTPServer.MiddlewareStatic,
+  Lib.HTTPServer.StaticFiles,
+  Lib.HTTPServer.WebApi,
   Lib.JSON.Format,
-  Lib.JSON.Store,
-  WebApi;
+  Lib.JSON.Store;
 
 type
   TForm3 = class(TForm)
@@ -64,6 +64,7 @@ type
     procedure OnRequest(Sender: TObject);
     procedure OnResponse(Sender: TObject);
     procedure SetServerControls;
+    procedure SetMiddlewares(Client: THTTPServerClient);
   public
   end;
 
@@ -166,9 +167,7 @@ begin
     if not Assigned(FConnections) then
     begin
       FConnections:=THTTPConnections.Create;
-      FConnections.OnClientsChange:=OnClientsChange;
-      FConnections.OnRequest:=OnRequest;
-      FConnections.OnResponse:=OnResponse;
+      FConnections.OnChange:=OnClientsChange;
     end;
     FServer:=THTTPServer.Create;
     try
@@ -195,7 +194,7 @@ begin
   RequestsMemo.Lines.Add(C.Request.Method+' '+C.Request.Resource);
   RequestsMemo.Lines.AddStrings(C.Request.Headers);
   RequestsMemo.Lines.Add('');
-  C.Request.ShowContentTo(ContentMemo.Lines);
+  C.Request.ShowTextContentTo(ContentMemo.Lines);
 end;
 
 procedure TForm3.OnResponse(Sender: TObject);
@@ -205,14 +204,13 @@ begin
   RequestsMemo.Lines.Add(C.Response.ResultCode.ToString+' '+C.Response.ResultText);
   RequestsMemo.Lines.AddStrings(C.Response.Headers);
   RequestsMemo.Lines.Add('');
-  C.Response.ShowContentTo(ResponseMemo.Lines);
+  C.Response.ShowTextContentTo(ResponseMemo.Lines);
 end;
 
 procedure TForm3.Button2Click(Sender: TObject);
 begin
   if Assigned(FConnections) then FConnections.DropClients;
   SetServerControls;
-  RequestsMemo.Lines.Add('Drop clients connections'#13#10);
 end;
 
 procedure TForm3.Button4Click(Sender: TObject);
@@ -220,28 +218,35 @@ begin
   RequestsMemo.Clear;
 end;
 
-procedure TForm3.OnAcceptClient(Sender: TObject);
+procedure TForm3.SetMiddlewares(Client: THTTPServerClient);
 var
-  C: THTTPServerClient;
-  MiddlewareStatic: TMiddlewareStatic;
-  MiddlewareWebApi: TMiddlewareWebApi;
+  StaticFiles: TStaticFiles;
+  WebApi: TWebApi;
+begin
+
+  WebApi:=TWebApi.Create;
+
+  Client.Use(WebApi);
+
+  StaticFiles:=TStaticFiles.Create(Edit3.Text,Memo2.Lines);
+
+  Client.Use(StaticFiles);
+
+end;
+
+procedure TForm3.OnAcceptClient(Sender: TObject);
+var C: THTTPServerClient;
 begin
 
   C:=THTTPServerClient.CreateOn(FServer.AcceptClient);
 
-  MiddlewareStatic:=TMiddlewareStatic.Create;
-  MiddlewareStatic.Aliases.Assign(Memo2.Lines);
-  MiddlewareStatic.Home:=Edit3.Text;
-
-  C.UseMiddleware(METHOD_GET,'/',MiddlewareStatic);
-
-  MiddlewareWebApi:=TMiddlewareWebApi.Create;
-
-  C.UseMiddleware(METHOD_GET,'/api/',MiddlewareWebApi);
-
-  C.KeepAliveTimeout:=StrToInt64Def(Edit4.Text,10);
+  C.KeepAliveTimeout:=StrToIntDef(Edit4.Text,10);
+  C.OnRequest:=OnRequest;
+  C.OnResponse:=OnResponse;
 
   FConnections.AddClient(C);
+
+  SetMiddlewares(C);
 
 end;
 
