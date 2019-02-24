@@ -19,8 +19,6 @@ type
     constructor Create(const Home: string; Aliases: TStrings);
     destructor Destroy; override;
     function Use(Request: TRequest; Response: TResponse): Boolean;
-    property Home: string read FHome write FHome;
-    property Aliases: TStrings read FAliases;
   end;
 
 implementation
