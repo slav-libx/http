@@ -139,11 +139,17 @@ begin
   try
     Image1.Picture.LoadFromFile(FileName);
     Image1.Hint:=PictureHint;
-    Panel1.Height:=Round(Image1.Picture.Height/Image1.Picture.Width*Panel1.Width);
-    Panel1.Top:=Height-Panel1.Height-96;
+//    Panel1.Height:=Round(Image1.Picture.Height/Image1.Picture.Width*Panel1.Width);
+//    Panel1.Top:=Height-Panel1.Height-96;
+//    Panel1.Left:=10;
+//    Panel1.Top:=10;
+    Panel1.Align:=alClient;
+    Panel1.Parent:=Memo2;
     Panel1.Visible:=True;
     if Image1.Picture.Graphic is TGIFImage then
       TGIFImage(Image1.Picture.Graphic).Animate:=True;
+    SpeedButton1.Click;
+    SpeedButton1.Down:=True;
     Exit;
   except
   end;
@@ -184,7 +190,7 @@ end;
 
 procedure TForm2.Image1Click(Sender: TObject);
 begin
-  ShowPicture('','');
+//  ShowPicture('','');
 end;
 
 procedure TForm2.Button1Click(Sender: TObject);

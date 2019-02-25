@@ -248,7 +248,8 @@ object RequestForm: TRequestForm
     TabOrder = 12
     Text = 'ProtocolComboBox'
     Items.Strings = (
-      'HTTP/1.1')
+      'HTTP/1.1'
+      'HTTP/1.0')
   end
   object OpenDialog1: TOpenDialog
     Left = 272

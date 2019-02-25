@@ -225,7 +225,6 @@ object Form2: TForm2
     Top = 354
     Width = 185
     Height = 45
-    Anchors = [akRight, akBottom]
     BevelOuter = bvNone
     Caption = 'Panel1'
     DoubleBuffered = True
@@ -244,6 +243,7 @@ object Form2: TForm2
       Proportional = True
       ShowHint = True
       Stretch = True
+      Transparent = True
       OnClick = Image1Click
       ExplicitHeight = 65
     end
