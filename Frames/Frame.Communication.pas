@@ -10,7 +10,7 @@ uses
   System.Classes,
   Vcl.Imaging.JPEG,
   Vcl.Imaging.GIFImg,
-  Vcl.Imaging.pngimage,
+  Vcl.Imaging.PNGImage,
   Vcl.Graphics,
   Vcl.Controls,
   Vcl.Forms,
@@ -76,7 +76,7 @@ begin
   Result:=nil;
   if ContentType.StartsWith('image/jpeg') then Result:=TJPEGImage else
   if ContentType.StartsWith('image/gif') then Result:=TGIFImage else
-  if ContentType.StartsWith('image/png') then Result:=TPngImage else
+  if ContentType.StartsWith('image/png') then Result:=TPNGImage else
   if ContentType.StartsWith('vnd.microsoft.icon') then Result:=TIcon;
 end;
 
@@ -90,7 +90,10 @@ begin
 
   if Assigned(GraphicClass) then
   begin
-    Graphic:=GraphicClass.Create;
+    if GraphicClass=TPNGImage then
+      Graphic:=TPNGImage.CreateBlank(0,1,0,0)
+    else
+      Graphic:=GraphicClass.Create;
     Picture.Graphic:=Graphic;
     Graphic.Free;
   end else
