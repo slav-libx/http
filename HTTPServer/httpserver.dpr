@@ -2,6 +2,7 @@ program httpserver;
 
 uses
   Vcl.Forms,
+  Frame.Communication in '..\Frames\Frame.Communication.pas' {CommunicationFrame: TFrame},
   Lib.HTTPServer.WebApi in 'Units\Lib.HTTPServer.WebApi.pas',
   Form.ServerMain in 'Forms\Form.ServerMain.pas' {Form3};
 

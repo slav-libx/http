@@ -3,8 +3,8 @@ object Form3: TForm3
   Top = 0
   BorderIcons = [biSystemMenu, biMinimize]
   Caption = 'Form3'
-  ClientHeight = 468
-  ClientWidth = 577
+  ClientHeight = 603
+  ClientWidth = 853
   Color = clBtnFace
   Constraints.MinHeight = 400
   Constraints.MinWidth = 500
@@ -19,8 +19,8 @@ object Form3: TForm3
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
-    577
-    468)
+    853
+    603)
   PixelsPerInch = 96
   TextHeight = 13
   object Label3: TLabel
@@ -45,7 +45,7 @@ object Form3: TForm3
     Caption = 'Aliases'
   end
   object Label2: TLabel
-    Left = 327
+    Left = 603
     Top = 152
     Width = 33
     Height = 13
@@ -60,9 +60,10 @@ object Form3: TForm3
     Font.Quality = fqClearType
     ParentColor = False
     ParentFont = False
+    ExplicitLeft = 327
   end
   object Button1: TButton
-    Left = 486
+    Left = 762
     Top = 146
     Width = 84
     Height = 25
@@ -70,6 +71,7 @@ object Form3: TForm3
     Caption = 'Start'
     TabOrder = 0
     OnClick = Button1Click
+    ExplicitLeft = 486
   end
   object Edit2: TEdit
     Left = 247
@@ -79,137 +81,55 @@ object Form3: TForm3
     TabOrder = 1
     Text = '80'
   end
-  object RequestsMemo: TMemo
-    Left = 0
-    Top = 180
-    Width = 577
-    Height = 254
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    ReadOnly = True
-    ScrollBars = ssVertical
-    TabOrder = 2
-  end
   object Edit1: TEdit
     Left = 56
     Top = 15
     Width = 185
     Height = 21
-    TabOrder = 3
+    TabOrder = 2
     Text = '124'
   end
   object Edit3: TEdit
     Left = 56
     Top = 47
-    Width = 513
+    Width = 789
     Height = 21
     Anchors = [akLeft, akTop, akRight]
-    TabOrder = 4
+    TabOrder = 3
     Text = '124'
+    ExplicitWidth = 513
   end
   object Memo2: TMemo
     Left = 56
     Top = 79
-    Width = 513
+    Width = 789
     Height = 57
     Anchors = [akLeft, akTop, akRight]
     Lines.Strings = (
       'scenario=D:\RP5Scenarios'
       'resources=D:\RP5Scenarios\Resources')
     ScrollBars = ssVertical
-    TabOrder = 5
+    TabOrder = 4
+    ExplicitWidth = 513
   end
   object Edit4: TEdit
     Left = 178
     Top = 148
     Width = 31
     Height = 21
-    TabOrder = 6
+    TabOrder = 5
     Text = '10'
   end
-  object ContentMemo: TMemo
-    Left = 0
-    Top = 180
-    Width = 577
-    Height = 254
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    ReadOnly = True
-    ScrollBars = ssVertical
-    TabOrder = 7
-  end
-  object Panel2: TPanel
-    Left = 0
-    Top = 438
-    Width = 577
-    Height = 30
-    Anchors = [akLeft, akRight, akBottom]
-    BevelOuter = bvNone
-    ParentBackground = False
-    ParentColor = True
-    TabOrder = 8
-    DesignSize = (
-      577
-      30)
-    object SpeedButton1: TSpeedButton
-      Left = 91
-      Top = 1
-      Width = 118
-      Height = 26
-      GroupIndex = 1
-      Caption = 'Request Content'
-      Flat = True
-      OnClick = SpeedButton1Click
-    end
-    object SpeedButton2: TSpeedButton
-      Left = 8
-      Top = 1
-      Width = 83
-      Height = 26
-      GroupIndex = 1
-      Down = True
-      Caption = 'Requests'
-      Flat = True
-      OnClick = SpeedButton2Click
-    end
-    object SpeedButton3: TSpeedButton
-      Left = 209
-      Top = 1
-      Width = 118
-      Height = 26
-      GroupIndex = 1
-      Caption = 'Response Content'
-      Flat = True
-      OnClick = SpeedButton3Click
-    end
-    object Button4: TButton
-      Left = 494
-      Top = 3
-      Width = 76
-      Height = 25
-      Anchors = [akTop, akRight]
-      Caption = 'Clear'
-      TabOrder = 0
-      OnClick = Button4Click
-    end
-  end
   object Button2: TButton
-    Left = 358
+    Left = 634
     Top = 146
     Width = 122
     Height = 25
     Anchors = [akTop, akRight]
     Caption = 'Close connections'
-    TabOrder = 9
+    TabOrder = 6
     OnClick = Button2Click
-  end
-  object ResponseMemo: TMemo
-    Left = 0
-    Top = 180
-    Width = 577
-    Height = 254
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    ReadOnly = True
-    ScrollBars = ssVertical
-    TabOrder = 10
+    ExplicitLeft = 358
   end
   object CheckBox1: TCheckBox
     Left = 56
@@ -219,6 +139,45 @@ object Form3: TForm3
     Caption = 'Keep-Alive Timeout'
     DoubleBuffered = True
     ParentDoubleBuffered = False
-    TabOrder = 11
+    TabOrder = 7
+  end
+  inline CommunicationFrame: TCommunicationFrame
+    Left = 0
+    Top = 180
+    Width = 853
+    Height = 423
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    TabOrder = 8
+    ExplicitTop = 180
+    ExplicitWidth = 853
+    ExplicitHeight = 423
+    inherited TabPanel: TPanel
+      Top = 393
+      Width = 853
+      ExplicitTop = 230
+      ExplicitWidth = 650
+      inherited ClearButton: TButton
+        Left = 770
+        ExplicitLeft = 567
+      end
+    end
+    inherited LogMemo: TMemo
+      Width = 853
+      Height = 393
+      ExplicitWidth = 650
+      ExplicitHeight = 230
+    end
+    inherited RequestMemo: TMemo
+      Width = 853
+      Height = 393
+      ExplicitWidth = 650
+      ExplicitHeight = 230
+    end
+    inherited ResponseMemo: TMemo
+      Width = 853
+      Height = 393
+      ExplicitWidth = 650
+      ExplicitHeight = 230
+    end
   end
 end

@@ -23,13 +23,12 @@ uses
   Lib.HTTPServer.StaticFiles,
   Lib.HTTPServer.WebApi,
   Lib.JSON.Format,
-  Lib.JSON.Store;
+  Lib.JSON.Store, Frame.Communication;
 
 type
   TForm3 = class(TForm)
     Button1: TButton;
     Edit2: TEdit;
-    RequestsMemo: TMemo;
     Button2: TButton;
     Label3: TLabel;
     Edit1: TEdit;
@@ -38,23 +37,13 @@ type
     Label5: TLabel;
     Memo2: TMemo;
     Edit4: TEdit;
-    ContentMemo: TMemo;
-    Panel2: TPanel;
-    SpeedButton1: TSpeedButton;
-    SpeedButton2: TSpeedButton;
-    Button4: TButton;
     Label2: TLabel;
-    SpeedButton3: TSpeedButton;
-    ResponseMemo: TMemo;
     CheckBox1: TCheckBox;
+    CommunicationFrame: TCommunicationFrame;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
-    procedure Button4Click(Sender: TObject);
-    procedure SpeedButton2Click(Sender: TObject);
-    procedure SpeedButton1Click(Sender: TObject);
-    procedure SpeedButton3Click(Sender: TObject);
   private
     FStore: TJSONStore;
     FCount: Integer;
@@ -99,12 +88,12 @@ begin
   CheckBox1.Checked:=FStore.ReadBool('keep-alive.enabled',False);
   FStore.ReadStrings('aliases',Memo2.Lines);
 
-  SpeedButton2.Down:=True;
-  SpeedButton2.OnClick(nil);
+  CommunicationFrame.Reset;
+  CommunicationFrame.AutoShowResponseContent:=False;
 
   SetServerControls;
 
-  Button1.Click;
+  StartStopServer;
 
 end;
 
@@ -136,7 +125,7 @@ begin
   begin
 
     FreeAndNil(FServer);
-    RequestsMemo.Lines.Add('Server stoped'#13#10);
+    CommunicationFrame.ToLog('Server stoped'+CRLF);
     SetServerControls;
 
   end else begin
@@ -150,7 +139,7 @@ begin
     try
       FServer.OnAccept:=OnAcceptClient;
       FServer.Start(Edit1.Text,StrToInt(Edit2.Text));
-      RequestsMemo.Lines.Add('Server started'#13#10);
+      CommunicationFrame.ToLog('Server started'+CRLF);
       SetServerControls;
     except
       FreeAndNil(FServer);
@@ -185,23 +174,13 @@ begin
 end;
 
 procedure TForm3.OnRequest(Sender: TObject);
-var C: THTTPServerClient;
 begin
-  C:=THTTPServerClient(Sender);
-  RequestsMemo.Lines.Add(C.Request.Method+' '+C.Request.Resource);
-  RequestsMemo.Lines.AddStrings(C.Request.Headers);
-  RequestsMemo.Lines.Add('');
-  C.Request.ShowTextContentTo(ContentMemo.Lines);
+  CommunicationFrame.SetRequest(THTTPServerClient(Sender).Request);
 end;
 
 procedure TForm3.OnResponse(Sender: TObject);
-var C: THTTPServerClient;
 begin
-  C:=THTTPServerClient(Sender);
-  RequestsMemo.Lines.Add(C.Response.ResultCode.ToString+' '+C.Response.ResultText);
-  RequestsMemo.Lines.AddStrings(C.Response.Headers);
-  RequestsMemo.Lines.Add('');
-  C.Response.ShowTextContentTo(ResponseMemo.Lines);
+  CommunicationFrame.SetResponse(THTTPServerClient(Sender).Response);
 end;
 
 procedure TForm3.SetMiddlewares(Client: THTTPServerClient);
@@ -235,21 +214,6 @@ begin
   SetServerControls;
 end;
 
-procedure TForm3.SpeedButton1Click(Sender: TObject);
-begin
-  ContentMemo.BringToFront;
-end;
-
-procedure TForm3.SpeedButton2Click(Sender: TObject);
-begin
-  RequestsMemo.BringToFront;
-end;
-
-procedure TForm3.SpeedButton3Click(Sender: TObject);
-begin
-  ResponseMemo.BringToFront;
-end;
-
 procedure TForm3.Button1Click(Sender: TObject);
 begin
   StartStopServer;
@@ -258,11 +222,6 @@ end;
 procedure TForm3.Button2Click(Sender: TObject);
 begin
   CloseClients;
-end;
-
-procedure TForm3.Button4Click(Sender: TObject);
-begin
-  RequestsMemo.Clear;
 end;
 
 end.
