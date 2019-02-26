@@ -312,20 +312,20 @@ begin
 
   Result:=HTTPDecodeResourceName(Resource);
 
+  Result:=HTTPResourceToLocal(Result);
+
   for I:=0 to Aliases.Count-1 do
   begin
     N:=Aliases.Names[I];
-    if N='' then Continue;
-    N:='/'+N;
-    if Result.StartsWith(N) then
+    if (N<>'') and Result.StartsWith(N) then
     begin
       P:=Aliases.ValueFromIndex[I];
       Result:=P+Result.Substring(Length(N));
-      if IsRelativePath(P) then Result:='/'+Result;
+      if IsRelativePath(P) then Result:='\'+Result;
     end;
   end;
 
-  if IsRelativePath(Result) then Result:=HomePath+Result;
+  if IsRelativePath(Result) then Result:=HomePath+'\'+Result;
 
 end;
 

@@ -20,7 +20,6 @@ type
     FActive: Boolean;
     FOnResource: TNotifyEvent;
     FOnRequest: TNotifyEvent;
-    FOnResponseHeader: TNotifyEvent;
     FOnResponse: TNotifyEvent;
     FOnIdle: TNotifyEvent;
     FOnMessage: TNotifyEvent;
@@ -31,7 +30,6 @@ type
     procedure DoOpen; override;
     procedure DoClose; override;
     procedure DoRead; override;
-    procedure DoReadHeader; override;
     procedure DoReadComplete; override;
     procedure DoMessage(const TextMessage: string);
     procedure DoConnectionClose;
@@ -44,7 +42,6 @@ type
     destructor Destroy; override;
     property OnRequest: TNotifyEvent read FOnRequest write FOnRequest;
     property OnResource: TNotifyEvent read FOnResource write FOnResource;
-    property OnResponseHeader: TNotifyEvent read FOnResponseHeader write FOnResponseHeader;
     property OnResponse: TNotifyEvent read FOnResponse write FOnResponse;
     property OnMessage: TNotifyEvent read FOnMessage write FOnMessage;
     property OnIdle: TNotifyEvent read FOnIdle write FOnIdle;
@@ -113,11 +110,6 @@ end;
 procedure THTTPClient.DoRead;
 begin
   while Response.DoRead(Read(20000))>0 do;
-end;
-
-procedure THTTPClient.DoReadHeader;
-begin
-  if Assigned(FOnResponseHeader) then FOnResponseHeader(Self);
 end;
 
 procedure THTTPClient.DoReadComplete;

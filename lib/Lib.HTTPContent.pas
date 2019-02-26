@@ -326,7 +326,11 @@ begin
 
     if HTTPContentIsJSON(ContentType) then
       Strings.Text:=ToJSON(TJSONObject.ParseJSONValue(
-        TEncoding.UTF8.GetString(Content)));
+        TEncoding.UTF8.GetString(Content)))
+    else
+
+    if LocalResource<>'' then
+      Strings.Text:='file://'+LocalResource;
 
   except
   end;

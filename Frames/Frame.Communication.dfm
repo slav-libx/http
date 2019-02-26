@@ -86,8 +86,14 @@ object CommunicationFrame: TCommunicationFrame
     BevelOuter = bvNone
     Ctl3D = True
     DoubleBuffered = True
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Consolas'
+    Font.Style = []
     ParentCtl3D = False
     ParentDoubleBuffered = False
+    ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 1
@@ -103,8 +109,14 @@ object CommunicationFrame: TCommunicationFrame
     BevelOuter = bvNone
     Ctl3D = True
     DoubleBuffered = True
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Consolas'
+    Font.Style = []
     ParentCtl3D = False
     ParentDoubleBuffered = False
+    ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 2
@@ -119,37 +131,52 @@ object CommunicationFrame: TCommunicationFrame
     BevelOuter = bvNone
     Ctl3D = True
     DoubleBuffered = True
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Consolas'
+    Font.Style = []
     ParentCtl3D = False
     ParentDoubleBuffered = False
+    ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 3
   end
-  object ImagePanel: TPanel
-    Left = 331
-    Top = 130
-    Width = 185
-    Height = 45
-    BevelOuter = bvNone
+  object PictureScrollBox: TScrollBox
+    Left = 0
+    Top = 0
+    Width = 571
+    Height = 292
+    VertScrollBar.Tracking = True
+    Align = alClient
     DoubleBuffered = True
+    Padding.Left = 10
+    Padding.Top = 10
+    Padding.Right = 10
+    Padding.Bottom = 10
     ParentDoubleBuffered = False
-    ShowCaption = False
     TabOrder = 4
     object ContentImage: TImage
-      Left = 0
-      Top = 0
-      Width = 185
-      Height = 45
+      Left = 10
+      Top = 10
+      Width = 547
+      Height = 268
+      Margins.Left = 10
+      Margins.Top = 10
+      Margins.Right = 10
+      Margins.Bottom = 10
       Align = alClient
-      AutoSize = True
       Center = True
       ParentShowHint = False
       Proportional = True
       ShowHint = True
       Stretch = True
       Transparent = True
-      ExplicitLeft = -88
-      ExplicitTop = -24
+      ExplicitLeft = 3
+      ExplicitTop = 3
+      ExplicitWidth = 561
+      ExplicitHeight = 246
     end
   end
 end

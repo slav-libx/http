@@ -54,6 +54,9 @@ begin
 
       Response.AddContentFile(FileName);
 
+      Response.ResourceName:=ExtractFileName(FileName);
+      Response.LocalResource:=FileName;
+
       Result:=True;
 
     end;

@@ -8,6 +8,7 @@ uses
   System.SysUtils,
   System.Variants,
   System.Classes,
+  System.Math,
   Vcl.Imaging.JPEG,
   Vcl.Imaging.GIFImg,
   Vcl.Imaging.PNGImage,
@@ -33,8 +34,8 @@ type
     LogMemo: TMemo;
     RequestMemo: TMemo;
     ResponseMemo: TMemo;
-    ImagePanel: TPanel;
     ContentImage: TImage;
+    PictureScrollBox: TScrollBox;
     procedure LogTabClick(Sender: TObject);
     procedure RequestTabClick(Sender: TObject);
     procedure ResponseTabClick(Sender: TObject);
@@ -77,7 +78,7 @@ begin
   if ContentType.StartsWith('image/jpeg') then Result:=TJPEGImage else
   if ContentType.StartsWith('image/gif') then Result:=TGIFImage else
   if ContentType.StartsWith('image/png') then Result:=TPNGImage else
-  if ContentType.StartsWith('vnd.microsoft.icon') then Result:=TIcon;
+  if ContentType.StartsWith('image/vnd.microsoft.icon') then Result:=TIcon;
 end;
 
 function CreatePictureGraphic(Picture: TPicture; const ContentType: string): Boolean;
@@ -138,21 +139,19 @@ begin
   if Assigned(Content) and PictureLoadFromContent(ContentImage.Picture,Content) then
   begin
 
+    ContentImage.Stretch:=
+      (ContentImage.Picture.Height>ContentImage.Height) or
+      (ContentImage.Picture.Width>ContentImage.Width);
+
     ContentImage.Hint:=Content.ResourceName;
-    //Panel1.Height:=Round(Image1.Picture.Height/Image1.Picture.Width*Panel1.Width);
-    ImagePanel.BringToFront;
-    ImagePanel.Align:=alClient;
-    ImagePanel.Parent:=ResponseMemo;
-    ImagePanel.Visible:=True;
 
     if ContentImage.Picture.Graphic is TGIFImage then
       TGIFImage(ContentImage.Picture.Graphic).Animate:=True;
 
   end else begin
 
-    ImagePanel.Visible:=False;
     ContentImage.Picture.Assign(nil);
-    ContentImage.Hint:='';
+    PictureScrollBox.SendToBack;
 
   end;
 
@@ -228,7 +227,7 @@ begin
     ShowResponseResultCode(Response.ResultCode);
 
     if Length(Response.Content)=0 then ShowLog else
-    if FAutoShowResponseContent then ShowResponse;
+    if FAutoShowResponseContent or ResponseTab.Down then ShowResponse;
 
   end;
 
@@ -247,6 +246,8 @@ end;
 procedure TCommunicationFrame.ResponseTabClick(Sender: TObject);
 begin
   ResponseMemo.BringToFront;
+  if Assigned(ContentImage.Picture.Graphic) then
+    PictureScrollBox.BringToFront;
 end;
 
 procedure TCommunicationFrame.ClearButtonClick(Sender: TObject);

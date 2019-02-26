@@ -194,8 +194,14 @@ object RequestForm: TRequestForm
     Width = 487
     Height = 121
     Anchors = [akLeft, akTop, akRight]
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Consolas'
+    Font.Style = []
     Lines.Strings = (
       'ContentMemo')
+    ParentFont = False
     ScrollBars = ssVertical
     TabOrder = 7
   end
@@ -234,8 +240,14 @@ object RequestForm: TRequestForm
     Top = 81
     Width = 487
     Height = 89
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Consolas'
+    Font.Style = []
     Lines.Strings = (
       'HeadersMemo')
+    ParentFont = False
     ScrollBars = ssVertical
     TabOrder = 11
     WordWrap = False
