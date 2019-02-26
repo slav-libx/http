@@ -365,14 +365,14 @@ end;
 procedure TRequest.ParseURL(const URL: string);
 begin
   HTTPSplitURL(URL,Transport,Host,Resource);
-  ResourceName:=HTTPDecodeResourceName(HTTPExtractResourceName(Resource));
+  ResourceName:=HTTPDecodeResource(HTTPExtractResourceName(Resource));
   LocalResource:=HTTPResourceToLocal(Resource);
 end;
 
 function TRequest.SendHeaders: string;
 begin
   Result:=inherited;
-  Result:=Method+' '+HTTPEncodeResourceName(Resource)+' '+Protocol+CRLF+Result;
+  Result:=Method+' '+HTTPEncodeResource(Resource)+' '+Protocol+CRLF+Result;
 end;
 
 procedure TRequest.DoHeader;
@@ -442,7 +442,7 @@ begin
 
   ContentType:=GetHeaderValue('Content-Type');
 
-  ResourceName:=HTTPDecodeResourceName(HTTPExtractResourceName(Resource));
+  ResourceName:=HTTPDecodeResource(HTTPExtractFileName(Resource));
   LocalResource:=HTTPResourceToLocal(Resource);
 
   Ext:=HTTPGetContentExt(ContentType);

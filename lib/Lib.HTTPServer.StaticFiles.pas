@@ -45,7 +45,7 @@ begin
   if Request.Method=METHOD_GET then
   begin
 
-    FileName:=HTTPResourceToLocalFileName(Request.Resource,FHome,FAliases);
+    FileName:=HTTPResourceToLocalFile(Request.Resource,FHome,FAliases);
 
     if FileExists(FileName) then
     begin

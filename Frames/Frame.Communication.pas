@@ -216,7 +216,7 @@ begin
 
   end else begin
 
-    ToLog(
+    ToLog(Response.ResultCode.ToString+' '+
       Response.ResultText+CRLF+
       Response.Headers.Text);
 

@@ -22,14 +22,18 @@ type
     function Read: T;
   end;
 
+function HTTPDecodeResource(const Resource: string): string;
+function HTTPEncodeResource(const Resource: string): string;
 function HTTPGetContentExt(const ContentType: string): string;
-function HTTPGetMIMEType(const FileExt: string): string;
+function HTTPGetMIMEType(const Ext: string): string;
 procedure HTTPGetContentTypes(Strings: TStrings);
 function HTTPExtractResourceName(const Resource: string): string;
-function HTTPDecodeResourceName(const ResourceName: string): string;
-function HTTPEncodeResourceName(const ResourceName: string): string;
+function HTTPResourceToLocalFile(const Resource: string; const HomePath: string; Aliases: TStrings): string;
+function HTTPResourceToLocal(const Resource: string): string;
+function HTTPExtractFileName(const Resource: string): string;
 procedure HTTPSplitURL(const URL: string; out Protocol,Host,Resource: string);
 procedure HTTPSplitHost(const Host: string; out HostName,Port: string);
+procedure HTTPSplitResource(const Resource: string; out ResourceName,Parameters: string);
 function HTTPTrySplitResponseResult(Header: TStrings; out Protocol: string; out Code: Integer; out Text: string): Boolean;
 function HTTPTrySplitRequest(const Request: string; out AMethod,AResource,AProtocol: string): Boolean;
 function HTTPGetHeaderValue(Header: TStrings; const Name: string): string;
@@ -39,13 +43,8 @@ function HTTPGetTagValue(const Tag: string): string;
 function HTTPEndedChunked(const B: TBytes): Boolean;
 function HTTPBytesFromChunked(const B: TBytes): TBytes;
 function HTTPGetHeaderLength(const B: TBytes): Integer;
-function HTTPResourceToLocalFileName(const Resource: string; const HomePath: string; Aliases: TStrings): string;
-function HTTPResourceToLocal(const Resource: string): string;
-function HTTPExtractFileName(const Resource: string): string;
 function HTTPContentIsText(const ContentType: string): Boolean;
 function HTTPContentIsJSON(const ContentType: string): Boolean;
-
-function BytesEndsWith(const B,E: TBytes): Boolean;
 
 implementation
 
@@ -94,13 +93,13 @@ begin
     end);
 end;
 
-function HTTPGetMIMEType(const FileExt: string): string;
+function HTTPGetMIMEType(const Ext: string): string;
 begin
   Result:=
     SameMap(MIME_Types,'application/octet-stream',0,1,
     function(MIMEType: string): Boolean
     begin
-      Result:=FileExt.ToLower=MIMEType;
+      Result:=Ext.ToLower=MIMEType;
     end);
 end;
 
@@ -114,31 +113,24 @@ begin
   Strings.EndUpdate;
 end;
 
-function HTTPExtractResourceName(const Resource: string): string;
-begin
-  Result:=HTTPExtractFileName(Resource);
-  if Result.Contains('?') then
-    Result:=Result.Substring(0,Result.IndexOf('?'));
-end;
-
-function HTTPDecodeResourceName(const ResourceName: string): string;
+function HTTPDecodeResource(const Resource: string): string;
 begin
   try
-    Result:=TNetEncoding.URL.Decode(ResourceName);
+    Result:=TNetEncoding.URL.Decode(Resource);
   except
-  on E: EConvertError do Exit(ResourceName);
+  on E: EConvertError do Exit(Resource);
   else raise;
   end;
 end;
 
-function HTTPEncodeResourceName(const ResourceName: string): string;
+function HTTPEncodeResource(const Resource: string): string;
 begin
   try
-    Result:=TNetEncoding.URL.Encode(ResourceName);
+    Result:=TNetEncoding.URL.Encode(Resource);
     Result:=Result.Replace('%2F','/',[rfReplaceAll]);
     Result:=Result.Replace('+','%20',[rfReplaceAll]);
   except
-  on E: EConvertError do Exit(ResourceName);
+  on E: EConvertError do Exit(Resource);
   else raise;
   end;
 end;
@@ -182,6 +174,68 @@ begin
     Port:='';
 end;
 
+procedure HTTPSplitResource(const Resource: string; out ResourceName,Parameters: string);
+var P: Integer;
+begin
+  P:=Resource.IndexOf('?');
+  if P<>-1 then
+  begin
+    ResourceName:=Resource.Substring(0,P);
+    Parameters:=Resource.Substring(P+1);
+  end else begin
+    ResourceName:=Resource;
+    Parameters:='';
+  end;
+
+end;
+
+function HTTPExtractResourceName(const Resource: string): string;
+var Parameters: string;
+begin
+  HTTPSplitResource(Resource,Result,Parameters);
+end;
+
+function HTTPExtractFileName(const Resource: string): string;
+var
+  P: Integer;
+  ResourceName,Parameters: string;
+begin
+  Result:=HTTPExtractResourceName(Resource);
+  P:=Result.LastDelimiter('/');
+  if P<>-1 then
+    Result:=Result.SubString(P+1);
+end;
+
+function HTTPResourceToLocalFile(const Resource: string; const HomePath: string; Aliases: TStrings): string;
+var
+  AliasName,AliasPath: string;
+  I: Integer;
+begin
+
+  Result:=HTTPDecodeResource(Resource);
+
+  Result:=HTTPResourceToLocal(Result);
+
+  for I:=0 to Aliases.Count-1 do
+  begin
+    AliasName:=Aliases.Names[I];
+    if (AliasName<>'') and Result.StartsWith(AliasName) then
+    begin
+      AliasPath:=Aliases.ValueFromIndex[I];
+      Result:=AliasPath+Result.Substring(Length(AliasName));
+    end;
+  end;
+
+  if IsRelativePath(Result) then Result:=HomePath+'\'+Result;
+
+end;
+
+function HTTPResourceToLocal(const Resource: string): string;
+begin
+  Result:=HTTPExtractResourceName(Resource).
+    Replace('/','\',[rfReplaceAll]).TrimLeft(['\']);
+end;
+
 function HTTPTrySplitResponseResult(Header: TStrings; out Protocol: string; out Code: Integer; out Text: string): Boolean;
 var Index1,Index2: Integer;
 begin
@@ -190,7 +244,7 @@ begin
   Index2:=Header[0].IndexOf(' ',Index1);
   Result:=TryStrToInt(Header[0].Substring(Index1,Index2-Index1),Code);
   Protocol:=Header[0].Substring(0,Index1-1);
-  Text:=Header[0].Substring(Index1);
+  Text:=Header[0].Substring(Index2+1);
 end;
 
 function HTTPTrySplitRequest(const Request: string; out AMethod,AResource,AProtocol: string): Boolean;
@@ -302,43 +356,6 @@ begin
     Index:=ChunkIndex+4+ChunkSize;
   end;
   SetLength(Result,ResultIndex);
-end;
-
-function HTTPResourceToLocalFileName(const Resource: string; const HomePath: string; Aliases: TStrings): string;
-var
-  P,N: string;
-  I: Integer;
-begin
-
-  Result:=HTTPDecodeResourceName(Resource);
-
-  Result:=HTTPResourceToLocal(Result);
-
-  for I:=0 to Aliases.Count-1 do
-  begin
-    N:=Aliases.Names[I];
-    if (N<>'') and Result.StartsWith(N) then
-    begin
-      P:=Aliases.ValueFromIndex[I];
-      Result:=P+Result.Substring(Length(N));
-      if IsRelativePath(P) then Result:='\'+Result;
-    end;
-  end;
-
-  if IsRelativePath(Result) then Result:=HomePath+'\'+Result;
-
-end;
-
-function HTTPResourceToLocal(const Resource: string): string;
-begin
-  Result:=Resource.Replace('/','\',[rfReplaceAll]).TrimLeft(['\']);
-end;
-
-function HTTPExtractFileName(const Resource: string): string;
-var I: Integer;
-begin
-  I:=Resource.LastDelimiter('/\');
-  Result:=Resource.SubString(I+1);
 end;
 
 function HTTPContentIsText(const ContentType: string): Boolean;
