@@ -148,6 +148,7 @@ procedure TContent.AddContentText(const Text,ContentType: string);
 begin
   Content:=TEncoding.Default.GetBytes(Text);
   AddHeaderValue('Content-Type',ContentType);
+  LocalResource:='';
 end;
 
 procedure TContent.AddContentFile(const FileName: string);
@@ -159,6 +160,7 @@ procedure TContent.AddContentFile(const FileName,ContentType: string);
 begin
   Content:=TFile.ReadAllBytes(FileName);
   AddHeaderValue('Content-Type',ContentType);
+  LocalResource:=FileName;
 end;
 
 function TContent.GetHeaderValue(const Name: string): string;
@@ -330,7 +332,7 @@ begin
     else
 
     if LocalResource<>'' then
-      Strings.Text:='file://'+LocalResource;
+      Strings.Text:=LocalResource;
 
   except
   end;
@@ -365,8 +367,7 @@ end;
 procedure TRequest.ParseURL(const URL: string);
 begin
   HTTPSplitURL(URL,Transport,Host,Resource);
-  ResourceName:=HTTPDecodeResource(HTTPExtractResourceName(Resource));
-  LocalResource:=HTTPResourceToLocal(Resource);
+  ResourceName:=HTTPExtractResourceName(HTTPDecodeResource(Resource));
 end;
 
 function TRequest.SendHeaders: string;
@@ -437,24 +438,29 @@ begin
 end;
 
 procedure TResponse.SetResource(const Resource: string);
-var ContentType,Ext: string;
+var ContentType,FileName,Ext: string;
 begin
+
+  ResourceName:=
+    HTTPExtractResourceName(
+    HTTPDecodeResource(Resource));
+
+  FileName:=HTTPExtractFileName(ResourceName);
+
+  if ResultCode<>HTTPCODE_SUCCESS then
+    FileName:='res'
+  else
+  if FileName='' then
+    FileName:='file';
 
   ContentType:=GetHeaderValue('Content-Type');
 
-  ResourceName:=HTTPDecodeResource(HTTPExtractFileName(Resource));
-  LocalResource:=HTTPResourceToLocal(Resource);
-
   Ext:=HTTPGetContentExt(ContentType);
 
-  if ResultCode<>HTTPCODE_SUCCESS then
-    ResourceName:='res'
-  else
-  if ResourceName='' then
-    ResourceName:='file';
+  if ContentType<>HTTPGetMIMEType(ExtractFileExt(FileName)) then
+    FileName:=ChangeFileExt(FileName,Ext);
 
-  if ContentType<>HTTPGetMIMEType(ExtractFileExt(ResourceName)) then
-    ResourceName:=ChangeFileExt(ResourceName,Ext);
+  LocalResource:=ExtractFilePath(HTTPResourceNameToLocal(ResourceName))+FileName;
 
 end;
 

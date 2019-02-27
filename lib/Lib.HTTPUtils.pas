@@ -7,6 +7,7 @@ uses
   System.Classes,
   System.Math,
   System.NetEncoding,
+  System.IOUtils,
   Lib.HTTPConsts;
 
 type
@@ -25,11 +26,11 @@ type
 function HTTPDecodeResource(const Resource: string): string;
 function HTTPEncodeResource(const Resource: string): string;
 function HTTPGetContentExt(const ContentType: string): string;
-function HTTPGetMIMEType(const Ext: string): string;
+function HTTPGetMIMEType(const FileExt: string): string;
 procedure HTTPGetContentTypes(Strings: TStrings);
 function HTTPExtractResourceName(const Resource: string): string;
-function HTTPResourceToLocalFile(const Resource: string; const HomePath: string; Aliases: TStrings): string;
-function HTTPResourceToLocal(const Resource: string): string;
+function HTTPFindLocalFile(const Resource: string; const HomePath: string; Aliases: TStrings): string;
+function HTTPResourceNameToLocal(const ResourceName: string): string;
 function HTTPExtractFileName(const Resource: string): string;
 procedure HTTPSplitURL(const URL: string; out Protocol,Host,Resource: string);
 procedure HTTPSplitHost(const Host: string; out HostName,Port: string);
@@ -74,33 +75,37 @@ begin
   StartIndex:=(StartIndex+1) mod DataSize;
 end;
 
-function SameMap(const V: array of string; const D: string;
-  O1,O2: Integer; CompareProc: TFunc<string,Boolean>): string;
+procedure SameMap(const V: array of string; EnumProc: TFunc<string,string,Boolean>);
 var I: Integer;
 begin
-  Result:=D;
   for I:=0 to High(V) div 2 do
-  if CompareProc(V[I*2+O1]) then Exit(V[I*2+O2]);
+  if EnumProc(V[I*2],V[I*2+1]) then Break;
 end;
 
 function HTTPGetContentExt(const ContentType: string): string;
+var S: string;
 begin
-  Result:=
-    SameMap(MIME_Types,'',1,0,
-    function(MIMEType: string): Boolean
-    begin
-      Result:=ContentType.StartsWith(MIMEType);
-    end);
+  S:='';
+  SameMap(MIME_Types,
+  function(Ext,MIMEType: string): Boolean
+  begin
+    Result:=ContentType.StartsWith(MIMEType);
+    if Result then S:=Ext;
+  end);
+  Result:=S;
 end;
 
-function HTTPGetMIMEType(const Ext: string): string;
+function HTTPGetMIMEType(const FileExt: string): string;
+var S: string;
 begin
-  Result:=
-    SameMap(MIME_Types,'application/octet-stream',0,1,
-    function(MIMEType: string): Boolean
-    begin
-      Result:=Ext.ToLower=MIMEType;
-    end);
+  S:='application/octet-stream';
+  SameMap(MIME_Types,
+  function(Ext,MIMEType: string): Boolean
+  begin
+    Result:=FileExt.ToLower=Ext;
+    if Result then S:=MIMEType;
+  end);
+  Result:=S;
 end;
 
 procedure HTTPGetContentTypes(Strings: TStrings);
@@ -108,8 +113,12 @@ var I: Integer;
 begin
   Strings.BeginUpdate;
   Strings.Clear;
-  for I:=0 to High(MIME_Types) div 2 do
-    Strings.Add(MIME_Types[I*2+1]);
+  SameMap(MIME_Types,
+  function(Ext,MIMEType: string): Boolean
+  begin
+    Result:=False;
+    Strings.Add(MIMEType);
+  end);
   Strings.EndUpdate;
 end;
 
@@ -206,45 +215,67 @@ begin
     Result:=Result.SubString(P+1);
 end;
 
-function HTTPResourceToLocalFile(const Resource: string; const HomePath: string; Aliases: TStrings): string;
+function CombineString(const S1,S2,S3: string): string;
+begin
+  if S1.EndsWith(S2) then
+    if S3.StartsWith(S2) then
+      Result:=S1+S3.Substring(1)
+    else
+      Result:=S1+S3
+  else
+    if S3.StartsWith(S2) then
+      Result:=S1+S3
+    else
+      Result:=S1+S2+S3;
+end;
+
+function CombinePath(const RootPath,FileName: string): string;
+begin
+  Result:=FileName;
+  if (Result.Substring(0,2)<>'\\') and (Result.Substring(1,1)<>':') then
+    Result:=CombineString(RootPath,'\',Result);
+end;
+
+function HTTPFindLocalFile(const Resource: string; const HomePath: string; Aliases: TStrings): string;
 var
   AliasName,AliasPath: string;
   I: Integer;
 begin
 
-  Result:=HTTPDecodeResource(Resource);
-
-  Result:=HTTPResourceToLocal(Result);
+  Result:=
+    HTTPResourceNameToLocal(
+    HTTPExtractResourceName(
+    HTTPDecodeResource(Resource)));
 
   for I:=0 to Aliases.Count-1 do
   begin
-    AliasName:=Aliases.Names[I];
+    AliasName:=CombineString('','\',Aliases.Names[I]);
     if (AliasName<>'') and Result.StartsWith(AliasName) then
     begin
       AliasPath:=Aliases.ValueFromIndex[I];
-      Result:=AliasPath+Result.Substring(Length(AliasName));
+      Result:=CombinePath(AliasPath,Result.Substring(Length(AliasName)));
     end;
   end;
 
-  if IsRelativePath(Result) then Result:=HomePath+'\'+Result;
+  Result:=CombinePath(HomePath,Result);
 
 end;
 
-function HTTPResourceToLocal(const Resource: string): string;
+function HTTPResourceNameToLocal(const ResourceName: string): string;
 begin
-  Result:=HTTPExtractResourceName(Resource).
-    Replace('/','\',[rfReplaceAll]).TrimLeft(['\']);
+  Result:=ResourceName.Replace('/','\',[rfReplaceAll]);
 end;
 
 function HTTPTrySplitResponseResult(Header: TStrings; out Protocol: string; out Code: Integer; out Text: string): Boolean;
-var Index1,Index2: Integer;
+var Index1,Index2: Integer; S: string;
 begin
   if Header.Count=0 then Exit(False);
-  Index1:=Header[0].IndexOf(' ',0)+1;
-  Index2:=Header[0].IndexOf(' ',Index1);
-  Result:=TryStrToInt(Header[0].Substring(Index1,Index2-Index1),Code);
-  Protocol:=Header[0].Substring(0,Index1-1);
-  Text:=Header[0].Substring(Index2+1);
+  S:=Header[0];
+  Index1:=S.IndexOf(' ',0)+1;
+  Index2:=S.IndexOf(' ',Index1);
+  Result:=TryStrToInt(S.Substring(Index1,Index2-Index1),Code);
+  Protocol:=S.Substring(0,Index1-1);
+  Text:=S.Substring(Index2+1);
 end;
 
 function HTTPTrySplitRequest(const Request: string; out AMethod,AResource,AProtocol: string): Boolean;

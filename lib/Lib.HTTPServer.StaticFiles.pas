@@ -45,7 +45,7 @@ begin
   if Request.Method=METHOD_GET then
   begin
 
-    FileName:=HTTPResourceToLocalFile(Request.Resource,FHome,FAliases);
+    FileName:=HTTPFindLocalFile(Request.Resource,FHome,FAliases);
 
     if FileExists(FileName) then
     begin
@@ -54,7 +54,7 @@ begin
 
       Response.AddContentFile(FileName);
 
-      Response.ResourceName:=ExtractFileName(FileName);
+//      Response.ResourceName:=ExtractFileName(FileName);
       Response.LocalResource:=FileName;
 
       Result:=True;

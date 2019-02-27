@@ -194,7 +194,7 @@ begin
 
   CommunicationFrame.SetResponse(C.Response);
 
-  ContentFileName:=Edit3.Text+C.Response.ResourceName;
+  ContentFileName:=Edit3.Text+ExtractFileName(C.Response.LocalResource);
 
   if Length(C.Response.Content)>0 then
     TFile.WriteAllBytes(ContentFileName,C.Response.Content);

@@ -41,8 +41,8 @@ begin
       Result:=Result+IndentValue+INDENT+jsPair.JsonString.ToJSON+': '+
         ToJSON(jsPair.JsonValue,IndentValue+INDENT)+','+CRLF;
     Result:=Result.Remove(Result.Length-CRLF.Length-1);
-    if Result.Length>0 then Result:=CRLF+Result+CRLF;
-    Result:='{'+Result+IndentValue+'}';
+    if Result.Length>0 then Result:=CRLF+Result+CRLF+IndentValue;
+    Result:='{'+Result+'}';
   end else
 
   if jsValue is TJSONArray then

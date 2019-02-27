@@ -120,6 +120,7 @@ object CommunicationFrame: TCommunicationFrame
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 2
+    WordWrap = False
   end
   object ResponseMemo: TMemo
     Left = 0
@@ -142,6 +143,7 @@ object CommunicationFrame: TCommunicationFrame
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 3
+    WordWrap = False
   end
   object PictureScrollBox: TScrollBox
     Left = 0
