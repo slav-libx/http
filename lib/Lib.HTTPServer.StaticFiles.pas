@@ -54,8 +54,7 @@ begin
 
       Response.AddContentFile(FileName);
 
-//      Response.ResourceName:=ExtractFileName(FileName);
-      Response.LocalResource:=FileName;
+      Response.ResourceName:=HTTPExtractResourceName(Request.Resource);
 
       Result:=True;
 

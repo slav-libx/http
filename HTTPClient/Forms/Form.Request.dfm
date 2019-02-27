@@ -3,7 +3,7 @@ object RequestForm: TRequestForm
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Create Request'
-  ClientHeight = 458
+  ClientHeight = 436
   ClientWidth = 587
   Color = clBtnFace
   DoubleBuffered = True
@@ -17,7 +17,7 @@ object RequestForm: TRequestForm
   OnClose = FormClose
   DesignSize = (
     587
-    458)
+    436)
   PixelsPerInch = 96
   TextHeight = 13
   object MethodLabel: TLabel
@@ -51,7 +51,7 @@ object RequestForm: TRequestForm
   end
   object BottomBevel: TBevel
     Left = 0
-    Top = 408
+    Top = 386
     Width = 587
     Height = 50
     Align = alBottom
@@ -75,45 +75,27 @@ object RequestForm: TRequestForm
     Anchors = [akTop, akRight]
     Caption = 'Type'
   end
-  object FileLabel: TLabel
-    Left = 13
-    Top = 344
-    Width = 16
-    Height = 13
-    Caption = 'File'
-  end
-  object FileNameLabel: TLabel
-    Left = 80
-    Top = 344
-    Width = 81
-    Height = 13
-    Caption = 'FileNameLabel'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = [fsBold]
-    ParentFont = False
-  end
   object RequestButton: TButton
     Left = 409
-    Top = 422
+    Top = 400
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Request'
     ModalResult = 1
     TabOrder = 0
+    ExplicitTop = 422
   end
   object CancelButton: TButton
     Left = 492
-    Top = 422
+    Top = 400
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 1
+    ExplicitTop = 422
   end
   object MethodComboBox: TComboBox
     Left = 80
@@ -219,16 +201,16 @@ object RequestForm: TRequestForm
   end
   object OpenFileButton: TButton
     Left = 80
-    Top = 369
-    Width = 75
+    Top = 340
+    Width = 89
     Height = 25
-    Caption = 'Open...'
+    Caption = 'Open File...'
     TabOrder = 9
     OnClick = OpenFileButtonClick
   end
   object RemoveFileButton: TButton
-    Left = 160
-    Top = 369
+    Left = 176
+    Top = 340
     Width = 73
     Height = 25
     Caption = 'Remove'
@@ -264,7 +246,7 @@ object RequestForm: TRequestForm
       'HTTP/1.0')
   end
   object OpenDialog1: TOpenDialog
-    Left = 272
-    Top = 352
+    Left = 16
+    Top = 296
   end
 end

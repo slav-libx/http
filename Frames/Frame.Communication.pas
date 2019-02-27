@@ -9,6 +9,7 @@ uses
   System.Variants,
   System.Classes,
   System.Math,
+  System.JSON,
   Vcl.Graphics,
   Vcl.Controls,
   Vcl.Forms,
@@ -16,6 +17,7 @@ uses
   Vcl.ExtCtrls,
   Vcl.StdCtrls,
   Vcl.Buttons,
+  Lib.JSON.Format,
   Lib.VCL.HTTPGraphic,
   Lib.HTTPConsts,
   Lib.HTTPUtils,
@@ -40,7 +42,6 @@ type
     procedure ClearButtonClick(Sender: TObject);
   private
     FAutoShowResponseContent: Boolean;
-    procedure ShowPicture(Content: TContent);
     procedure ShowResponseResultCode(ResultCode: Integer);
   public
     constructor Create(AOwner: TComponent); override;
@@ -57,33 +58,63 @@ implementation
 
 {$R *.dfm}
 
+procedure ShowContentText(Content: TContent; Strings: TStrings);
+var
+  ContentType,jsText: string;
+  jsValue: TJSONValue;
+begin
+
+  Strings.Clear;
+
+  ContentType:=Content.GetHeaderValue('Content-Type');
+
+  try
+
+    if HTTPContentIsText(ContentType) then
+      Strings.Text:=TEncoding.ANSI.GetString(Content.Content)
+    else
+
+    if HTTPContentIsJSON(ContentType) then
+    begin
+      jsText:=TEncoding.UTF8.GetString(Content.Content);
+      jsValue:=TJSONObject.ParseJSONValue(jsText);
+      if Assigned(jsValue) then
+        Strings.Text:=ToJSON(jsValue)
+      else
+        Strings.Text:=jsText;
+    end else
+
+      Strings.Text:=Content.Description;
+
+  except
+  end;
+
+end;
+
+procedure ShowContentPicture(Content: TContent; Image: TImage);
+begin
+
+  if Assigned(Content) and PictureLoadFromContent(Image.Picture,Content) then
+  begin
+
+    Image.Stretch:=
+      (Image.Picture.Height>Image.Height) or
+      (Image.Picture.Width>Image.Width);
+
+    Image.Hint:=HTTPExtractFileName(Content.ResourceName);
+
+  end else
+
+    Image.Picture.Assign(nil);
+
+end;
+
 { TCommunicationFrame }
 
 constructor TCommunicationFrame.Create(AOwner: TComponent);
 begin
   inherited;
   FAutoShowResponseContent:=True;
-end;
-
-procedure TCommunicationFrame.ShowPicture(Content: TContent);
-begin
-
-  if Assigned(Content) and PictureLoadFromContent(ContentImage.Picture,Content) then
-  begin
-
-    ContentImage.Stretch:=
-      (ContentImage.Picture.Height>ContentImage.Height) or
-      (ContentImage.Picture.Width>ContentImage.Width);
-
-    ContentImage.Hint:=Content.ResourceName;
-
-  end else begin
-
-    ContentImage.Picture.Assign(nil);
-    PictureScrollBox.SendToBack;
-
-  end;
-
 end;
 
 function GetResponseColor(Code: Integer): TColor;
@@ -127,7 +158,7 @@ begin
       Request.Method+' '+Request.Resource+CRLF+
       Request.Headers.Text);
 
-    Request.ShowTextContentTo(RequestMemo.Lines);
+    ShowContentText(Request,RequestMemo.Lines);
 
   end;
 
@@ -141,7 +172,7 @@ begin
 
     ResponseMemo.Clear;
     ShowResponseResultCode(0);
-    ShowPicture(nil);
+    ShowContentPicture(nil,ContentImage);
 
   end else begin
 
@@ -149,9 +180,12 @@ begin
       Response.ResultText+CRLF+
       Response.Headers.Text);
 
-    ShowPicture(Response);
+    ShowContentPicture(Response,ContentImage);
 
-    Response.ShowTextContentTo(ResponseMemo.Lines);
+    if not Assigned(ContentImage.Picture.Graphic) then
+      PictureScrollBox.SendToBack;
+
+    ShowContentText(Response,ResponseMemo.Lines);
 
     ShowResponseResultCode(Response.ResultCode);
 

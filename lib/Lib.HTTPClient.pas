@@ -135,7 +135,7 @@ begin
   SetReadTimeout(0);
   SetKeepAliveTimeout(Timeout);
 
-  Response.SetResource(Request.Resource);
+  Response.Merge(Request);
 
   if Assigned(FOnResponse) then FOnResponse(Self);
 

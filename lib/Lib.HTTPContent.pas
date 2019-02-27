@@ -6,8 +6,6 @@ uses
   System.SysUtils,
   System.Classes,
   System.IOUtils,
-  System.JSON,
-  Lib.JSON.Format,
   Lib.HTTPConsts,
   Lib.HTTPUtils;
 
@@ -34,6 +32,7 @@ type
     Content: TBytes;
     ResourceName: string;
     LocalResource: string;
+    Description: string;
     constructor Create; virtual;
     destructor Destroy; override;
     procedure AddHeaderValue(const Name,Value: string);
@@ -52,7 +51,6 @@ type
     procedure Assign(Source: TContent); virtual;
     function DoRead(const B: TBytes): Integer;
     function SendHeaders: string; virtual;
-    procedure ShowTextContentTo(Strings: TStrings);
   public
     property ContentLength: Integer read FContentLength;
     property ContentReaded: Integer read FContentReaded;
@@ -73,6 +71,7 @@ type
     procedure Assign(Source: TContent); override;
     procedure ParseURL(const URL: string);
     function SendHeaders: string; override;
+    procedure Merge;
   end;
 
   TResponse = class(TContent)
@@ -85,7 +84,7 @@ type
     procedure Assign(Source: TContent); override;
     function SendHeaders: string; override;
     procedure SetResult(Code: Integer; const Text: string);
-    procedure SetResource(const Resource: string);
+    procedure Merge(Request: TRequest);
   end;
 
 implementation
@@ -112,6 +111,7 @@ begin
   Protocol:='';
   ResourceName:='';
   LocalResource:='';
+  Description:='';
 end;
 
 procedure TContent.Assign(Source: TContent);
@@ -121,6 +121,7 @@ begin
   Protocol:=Source.Protocol;
   ResourceName:=Source.ResourceName;
   LocalResource:=Source.LocalResource;
+  Description:=Source.Description;
 end;
 
 procedure TContent.AddHeaderValue(const Name,Value: string);
@@ -148,7 +149,7 @@ procedure TContent.AddContentText(const Text,ContentType: string);
 begin
   Content:=TEncoding.Default.GetBytes(Text);
   AddHeaderValue('Content-Type',ContentType);
-  LocalResource:='';
+  Description:=Text;
 end;
 
 procedure TContent.AddContentFile(const FileName: string);
@@ -160,7 +161,7 @@ procedure TContent.AddContentFile(const FileName,ContentType: string);
 begin
   Content:=TFile.ReadAllBytes(FileName);
   AddHeaderValue('Content-Type',ContentType);
-  LocalResource:=FileName;
+  Description:=FileName+' ('+Length(Content).ToString+' bytes)';
 end;
 
 function TContent.GetHeaderValue(const Name: string): string;
@@ -312,33 +313,6 @@ begin
 
 end;
 
-procedure TContent.ShowTextContentTo(Strings: TStrings);
-var ContentType: string;
-begin
-
-  Strings.Clear;
-
-  ContentType:=GetHeaderValue('Content-Type');
-
-  try
-
-    if HTTPContentIsText(ContentType) then
-      Strings.Text:=TEncoding.ANSI.GetString(Content)
-    else
-
-    if HTTPContentIsJSON(ContentType) then
-      Strings.Text:=ToJSON(TJSONObject.ParseJSONValue(
-        TEncoding.UTF8.GetString(Content)))
-    else
-
-    if LocalResource<>'' then
-      Strings.Text:=LocalResource;
-
-  except
-  end;
-
-end;
-
 { TRequest }
 
 procedure TRequest.Reset;
@@ -367,7 +341,6 @@ end;
 procedure TRequest.ParseURL(const URL: string);
 begin
   HTTPSplitURL(URL,Transport,Host,Resource);
-  ResourceName:=HTTPExtractResourceName(HTTPDecodeResource(Resource));
 end;
 
 function TRequest.SendHeaders: string;
@@ -382,11 +355,19 @@ begin
   if Headers.Count>0 then
   if HTTPTrySplitRequest(Headers[0],Method,Resource,Protocol) then
   begin
+
     Headers.Delete(0);
+
   end;
 
   inherited;
 
+end;
+
+procedure TRequest.Merge;
+begin
+  ResourceName:=HTTPExtractResourceName(HTTPDecodeResource(Resource));
+  Description:=GetHeaderValue('Content-Type')+' ('+Length(Content).ToString+' bytes)';
 end;
 
 { TResponse }
@@ -437,13 +418,13 @@ begin
   inherited;
 end;
 
-procedure TResponse.SetResource(const Resource: string);
+procedure TResponse.Merge(Request: TRequest);
 var ContentType,FileName,Ext: string;
 begin
 
   ResourceName:=
     HTTPExtractResourceName(
-    HTTPDecodeResource(Resource));
+    HTTPDecodeResource(Request.Resource));
 
   FileName:=HTTPExtractFileName(ResourceName);
 
@@ -461,6 +442,7 @@ begin
     FileName:=ChangeFileExt(FileName,Ext);
 
   LocalResource:=ExtractFilePath(HTTPResourceNameToLocal(ResourceName))+FileName;
+  Description:=ResourceName+' ('+Length(Content).ToString+' bytes)';
 
 end;
 

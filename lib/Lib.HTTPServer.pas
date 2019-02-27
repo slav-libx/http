@@ -84,6 +84,8 @@ begin
 
   SetReadTimeout(0);
 
+  Request.Merge;
+
   if Assigned(FOnRequest) then FOnRequest(Self);
 
   FKeepConnection:=KeepAlive and (KeepAliveTimeout>0) and Request.ConnectionKeepAlive;

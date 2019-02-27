@@ -37,8 +37,6 @@ type
     ContentLabel: TLabel;
     ContentTypeComboBox: TComboBox;
     ContentTypeLabel: TLabel;
-    FileLabel: TLabel;
-    FileNameLabel: TLabel;
     OpenFileButton: TButton;
     OpenDialog1: TOpenDialog;
     RemoveFileButton: TButton;
@@ -101,7 +99,6 @@ begin
   MethodComboBox.ItemIndex:=MethodComboBox.Items.IndexOf(FRequest.Method.ToUpper);
   HeaderNameComboBox.OnChange(nil);
   ContentTypeComboBox.ItemIndex:=0;
-  FileNameLabel.Caption:='(none)';
   HeadersMemo.Lines.Assign(FRequest.Headers);
   HeaderNameComboBox.Text:='';
   HeaderValueComboBox.Text:='';
@@ -114,11 +111,11 @@ begin
     FRequest.Protocol:=ProtocolComboBox.Text;
     FRequest.Method:=MethodComboBox.Text;
     FRequest.Headers.Assign(HeadersMemo.Lines);
-    if ContentMemo.Text<>'' then
-      FRequest.AddContentText(ContentMemo.Text,ContentTypeComboBox.Text)
-    else
     if FContentFileName<>'' then
-      FRequest.AddContentFile(FContentFileName,ContentTypeComboBox.Text);
+      FRequest.AddContentFile(FContentFileName,ContentTypeComboBox.Text)
+    else
+    if ContentMemo.Text<>'' then
+      FRequest.AddContentText(ContentMemo.Text,ContentTypeComboBox.Text);
   end;
 
 end;
@@ -151,7 +148,9 @@ begin
   if OpenDialog1.Execute(Handle) then
   begin
     FContentFileName:=OpenDialog1.FileName;
-    FileNameLabel.Caption:=ExtractFileName(FContentFileName);
+    ContentMemo.Text:=FContentFileName;
+    ContentMemo.ReadOnly:=True;
+    ContentMemo.ParentColor:=True;
     ContentTypeComboBox.Text:=HTTPGetMIMEType(ExtractFileExt(FContentFileName));
   end;
 end;
@@ -159,9 +158,11 @@ end;
 procedure TRequestForm.RemoveFileButtonClick(Sender: TObject);
 begin
   FContentFileName:='';
-  FileNameLabel.Caption:='(none)';
   ContentTypeComboBox.ItemIndex:=-1;
   ContentTypeComboBox.ItemIndex:=0;
+  ContentMemo.Clear;
+  ContentMemo.ReadOnly:=False;
+  ContentMemo.Color:=HeadersMemo.Color;
 end;
 
 end.
