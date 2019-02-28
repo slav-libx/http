@@ -32,6 +32,7 @@ function HTTPExtractResourceName(const Resource: string): string;
 function HTTPFindLocalFile(const Resource: string; const HomePath: string; Aliases: TStrings): string;
 function HTTPResourceNameToLocal(const ResourceName: string): string;
 function HTTPExtractFileName(const Resource: string): string;
+function HTTPChangeResourceNameExt(const ResourceName,ContentType: string): string;
 procedure HTTPSplitURL(const URL: string; out Protocol,Host,Resource: string);
 procedure HTTPSplitHost(const Host: string; out HostName,Port: string);
 procedure HTTPSplitResource(const Resource: string; out ResourceName,Parameters: string);
@@ -213,6 +214,38 @@ begin
   P:=Result.LastDelimiter('/');
   if P<>-1 then
     Result:=Result.SubString(P+1);
+end;
+
+function HTTPChangeResourceNameExt(const ResourceName,ContentType: string): string;
+var
+  Extension,ResourceExtension: string;
+  P: Integer;
+begin
+
+  Result:=ResourceName;
+
+  Extension:=HTTPGetContentExt(ContentType);
+
+  if Extension<>'' then
+  begin
+
+    P:=ResourceName.LastDelimiter('.'+ResDelim);
+
+    if (P<0) or (ResourceName.Chars[P]<>'.') then
+
+      Result:=ResourceName+Extension
+
+    else begin
+
+      ResourceExtension:=ResourceName.SubString(P);
+
+      if ContentType<>HTTPGetMIMEType(ResourceExtension) then
+        Result:=ResourceName.SubString(0,P)+Extension;
+
+    end;
+
+  end;
+
 end;
 
 function CombineString(const S1,S2,S3: string): string;

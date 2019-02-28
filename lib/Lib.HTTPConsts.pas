@@ -19,6 +19,8 @@ const
   HTTPCODE_METHOD_NOT_ALLOWED = 405;
   HTTPCODE_NOT_SUPPORTED = 505;
 
+  ResDelim = '/';
+
   content_404 =
 
     '<html>'+CRLF+

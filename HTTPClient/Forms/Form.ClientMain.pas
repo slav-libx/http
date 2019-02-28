@@ -194,10 +194,11 @@ begin
 
   CommunicationFrame.SetResponse(C.Response);
 
-  ContentFileName:=Edit3.Text+ExtractFileName(C.Response.LocalResource);
-
   if Length(C.Response.Content)>0 then
+  begin
+    ContentFileName:=ChangeFilePath(C.Response.LocalResource,Edit3.Text);
     TFile.WriteAllBytes(ContentFileName,C.Response.Content);
+  end;
 
   if C.Response.ResultCode=HTTPCODE_MOVED_PERMANENTLY then
   begin

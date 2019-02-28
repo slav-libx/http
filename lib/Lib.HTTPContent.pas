@@ -45,6 +45,7 @@ type
     function ConnectionClose: Boolean;
     function ConnectionKeepAlive: Boolean;
     function KeepAliveTimeout: Integer;
+    function ContentType: string;
     property Headers: TStrings read FHeaders;
   public
     procedure Reset; virtual;
@@ -88,6 +89,11 @@ type
   end;
 
 implementation
+
+function ContentToSizeString(const Content: TBytes): string;
+begin
+  Result:=Length(Content).ToString+' bytes';
+end;
 
 constructor TContent.Create;
 begin
@@ -161,7 +167,7 @@ procedure TContent.AddContentFile(const FileName,ContentType: string);
 begin
   Content:=TFile.ReadAllBytes(FileName);
   AddHeaderValue('Content-Type',ContentType);
-  Description:=FileName+' ('+Length(Content).ToString+' bytes)';
+  Description:=FileName+' ('+ContentToSizeString(Content)+')';
 end;
 
 function TContent.GetHeaderValue(const Name: string): string;
@@ -186,6 +192,14 @@ begin
   TagTimeout:=HTTPGetTag(GetHeaderValue('Keep-Alive'),'timeout');
   if TagTimeout<>'' then
     Result:=StrToIntDef(HTTPGetTagValue(TagTimeout),0);
+end;
+
+function TContent.ContentType: string;
+var P: Integer;
+begin
+  Result:=GetHeaderValue('Content-Type');
+  P:=Result.IndexOf(';');
+  if P>-1 then Result:=Result.Substring(0,P).Trim;
 end;
 
 procedure TContent.DoBeginRead;
@@ -367,7 +381,7 @@ end;
 procedure TRequest.Merge;
 begin
   ResourceName:=HTTPExtractResourceName(HTTPDecodeResource(Resource));
-  Description:=GetHeaderValue('Content-Type')+' ('+Length(Content).ToString+' bytes)';
+  Description:=ContentType+' ('+ContentToSizeString(Content)+')';
 end;
 
 { TResponse }
@@ -419,30 +433,29 @@ begin
 end;
 
 procedure TResponse.Merge(Request: TRequest);
-var ContentType,FileName,Ext: string;
+var Ext: string;
 begin
 
   ResourceName:=
     HTTPExtractResourceName(
     HTTPDecodeResource(Request.Resource));
 
-  FileName:=HTTPExtractFileName(ResourceName);
+  LocalResource:=ResourceName;
 
   if ResultCode<>HTTPCODE_SUCCESS then
-    FileName:='res'
+    LocalResource:='error'+ResultCode.ToString
   else
-  if FileName='' then
-    FileName:='file';
+  if LocalResource='' then
+    LocalResource:='file'
+  else
+  if LocalResource=ResDelim then
+    LocalResource:='page';
 
-  ContentType:=GetHeaderValue('Content-Type');
+  LocalResource:=
+    HTTPResourceNameToLocal(
+    HTTPChangeResourceNameExt(LocalResource,ContentType));
 
-  Ext:=HTTPGetContentExt(ContentType);
-
-  if ContentType<>HTTPGetMIMEType(ExtractFileExt(FileName)) then
-    FileName:=ChangeFileExt(FileName,Ext);
-
-  LocalResource:=ExtractFilePath(HTTPResourceNameToLocal(ResourceName))+FileName;
-  Description:=ResourceName+' ('+Length(Content).ToString+' bytes)';
+  Description:=ResourceName+' ('+ContentToSizeString(Content)+')';
 
 end;
 

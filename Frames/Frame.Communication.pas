@@ -66,7 +66,7 @@ begin
 
   Strings.Clear;
 
-  ContentType:=Content.GetHeaderValue('Content-Type');
+  ContentType:=Content.ContentType;
 
   try
 
