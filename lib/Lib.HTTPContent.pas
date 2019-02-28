@@ -90,7 +90,7 @@ type
 
 implementation
 
-function ContentToSizeString(const Content: TBytes): string;
+function ContentSizeToString(const Content: TBytes): string;
 begin
   Result:=Length(Content).ToString+' bytes';
 end;
@@ -167,7 +167,7 @@ procedure TContent.AddContentFile(const FileName,ContentType: string);
 begin
   Content:=TFile.ReadAllBytes(FileName);
   AddHeaderValue('Content-Type',ContentType);
-  Description:=FileName+' ('+ContentToSizeString(Content)+')';
+  Description:=FileName+' ('+ContentSizeToString(Content)+')';
 end;
 
 function TContent.GetHeaderValue(const Name: string): string;
@@ -381,7 +381,7 @@ end;
 procedure TRequest.Merge;
 begin
   ResourceName:=HTTPExtractResourceName(HTTPDecodeResource(Resource));
-  Description:=ContentType+' ('+ContentToSizeString(Content)+')';
+  Description:=ContentType+' ('+ContentSizeToString(Content)+')';
 end;
 
 { TResponse }
@@ -433,7 +433,6 @@ begin
 end;
 
 procedure TResponse.Merge(Request: TRequest);
-var Ext: string;
 begin
 
   ResourceName:=
@@ -455,7 +454,7 @@ begin
     HTTPResourceNameToLocal(
     HTTPChangeResourceNameExt(LocalResource,ContentType));
 
-  Description:=ResourceName+' ('+ContentToSizeString(Content)+')';
+  Description:=ResourceName+' ('+ContentSizeToString(Content)+')';
 
 end;
 
