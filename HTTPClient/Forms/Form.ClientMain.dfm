@@ -59,6 +59,7 @@ object Form2: TForm2
     ParentDoubleBuffered = False
     TabOrder = 1
     Text = 'Edit1'
+    OnKeyDown = Edit1KeyDown
   end
   object Button1: TButton
     Left = 8

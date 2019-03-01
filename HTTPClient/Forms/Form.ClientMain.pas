@@ -52,6 +52,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
+    procedure Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     FHTTPClient: THTTPClient;
     FStore: TJSONStore;
@@ -102,6 +103,12 @@ begin
 
   FStore.Free;
 
+end;
+
+procedure TForm2.Edit1KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key=VK_RETURN then Button1Click(Sender);
 end;
 
 procedure TForm2.Button1Click(Sender: TObject);
