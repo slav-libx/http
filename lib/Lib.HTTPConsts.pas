@@ -9,8 +9,8 @@ const
   CRLF2 = CRLF+CRLF;
   PROTOCOL_HTTP11 = 'HTTP/1.1';
   METHOD_GET = 'GET';
-  TRANSPORT_HTTP = 'http';
-  TRANSPORT_HTTPS = 'https';
+  SCHEME_HTTP = 'http';
+  SCHEME_HTTPS = 'https';
 
   HTTPCODE_SUCCESS = 200;
   HTTPCODE_MOVED_PERMANENTLY = 301;
@@ -19,7 +19,7 @@ const
   HTTPCODE_METHOD_NOT_ALLOWED = 405;
   HTTPCODE_NOT_SUPPORTED = 505;
 
-  ResDelim = '/';
+  RESOURCE_DELIMITER = '/';
 
   content_404 =
 

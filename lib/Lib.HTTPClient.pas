@@ -196,7 +196,7 @@ begin
 
   HTTPSplitHost(Request.Host,HostName,HostPort);
 
-  ProtocolUseSSL:=SameText(Request.Transport,TRANSPORT_HTTPS);
+  ProtocolUseSSL:=SameText(Request.Scheme,SCHEME_HTTPS);
 
   if ProtocolUseSSL then
     Port:=StrToIntDef(HostPort,HTTPS_PORT)

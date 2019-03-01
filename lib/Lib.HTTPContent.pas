@@ -65,9 +65,11 @@ type
     procedure DoHeader; override;
   public
     Host: string;
-    Transport: string;
+    Scheme: string;
     Method: string;
     Resource: string;
+    Query: string;
+    Fragment: string;
     procedure Reset; override;
     procedure Assign(Source: TContent); override;
     procedure ParseURL(const URL: string);
@@ -333,9 +335,11 @@ procedure TRequest.Reset;
 begin
   inherited;
   Host:='';
-  Transport:='';
+  Scheme:='';
   Method:='';
   Resource:='';
+  Query:='';
+  Fragment:='';
 end;
 
 procedure TRequest.Assign(Source: TContent);
@@ -346,15 +350,17 @@ begin
   begin
     S:=TRequest(Source);
     Host:=S.Host;
-    Transport:=S.Transport;
+    Scheme:=S.Scheme;
     Method:=S.Method;
     Resource:=S.Resource;
+    Query:=S.Query;
+    Fragment:=S.Fragment
   end;
 end;
 
 procedure TRequest.ParseURL(const URL: string);
 begin
-  HTTPSplitURL(URL,Transport,Host,Resource);
+  HTTPSplitURL(URL,Scheme,Host,Resource);
 end;
 
 function TRequest.SendHeaders: string;
@@ -447,7 +453,7 @@ begin
   if LocalResource='' then
     LocalResource:='file'
   else
-  if LocalResource=ResDelim then
+  if LocalResource=RESOURCE_DELIMITER then
     LocalResource:='page';
 
   LocalResource:=

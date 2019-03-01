@@ -35,7 +35,7 @@ function HTTPExtractFileName(const Resource: string): string;
 function HTTPChangeResourceNameExt(const ResourceName,ContentType: string): string;
 procedure HTTPSplitURL(const URL: string; out Protocol,Host,Resource: string);
 procedure HTTPSplitHost(const Host: string; out HostName,Port: string);
-procedure HTTPSplitResource(const Resource: string; out ResourceName,Parameters: string);
+procedure HTTPSplitResource(const Resource: string; out ResourceName,Query,Fragment: string);
 function HTTPTrySplitResponseResult(Header: TStrings; out Protocol: string; out Code: Integer; out Text: string): Boolean;
 function HTTPTrySplitRequest(const Request: string; out AMethod,AResource,AProtocol: string): Boolean;
 function HTTPGetHeaderValue(Header: TStrings; const Name: string): string;
@@ -184,31 +184,26 @@ begin
     Port:='';
 end;
 
-procedure HTTPSplitResource(const Resource: string; out ResourceName,Parameters: string);
-var P: Integer;
+procedure HTTPSplitResource(const Resource: string; out ResourceName,Query,Fragment: string);
+var P,F: Integer;
 begin
   P:=Resource.IndexOf('?');
-  if P<>-1 then
-  begin
-    ResourceName:=Resource.Substring(0,P);
-    Parameters:=Resource.Substring(P+1);
-  end else begin
-    ResourceName:=Resource;
-    Parameters:='';
-  end;
-
+  if P=-1 then P:=Length(Resource); // MaxInt unacceptably
+  F:=Resource.IndexOf('#',P);
+  if F=-1 then F:=Length(Resource); // MaxInt unacceptably
+  ResourceName:=Resource.Substring(0,P);
+  Query:=Resource.Substring(P+1,F-P-1);
+  Fragment:=Resource.Substring(F+1);
 end;
 
 function HTTPExtractResourceName(const Resource: string): string;
-var Parameters: string;
+var Query,Fragment: string;
 begin
-  HTTPSplitResource(Resource,Result,Parameters);
+  HTTPSplitResource(Resource,Result,Query,Fragment);
 end;
 
 function HTTPExtractFileName(const Resource: string): string;
-var
-  P: Integer;
-  ResourceName,Parameters: string;
+var P: Integer;
 begin
   Result:=HTTPExtractResourceName(Resource);
   P:=Result.LastDelimiter('/');
@@ -229,7 +224,7 @@ begin
   if Extension<>'' then
   begin
 
-    P:=ResourceName.LastDelimiter('.'+ResDelim);
+    P:=ResourceName.LastDelimiter('.'+RESOURCE_DELIMITER);
 
     if (P<0) or (ResourceName.Chars[P]<>'.') then
 
