@@ -100,12 +100,9 @@ begin
 end;
 
 procedure TJSONStore.Flush;
-var S: string;
 begin
-  S:=ToJSON(FObject,True);
   if Assigned(FObject) and not FOwned then
-    TFile.WriteAllText(FStoreFileName,S,TEncoding.ANSI);
-  //TFile.WriteAllText(FStoreFileName,FObject.ToJSON,TEncoding.ANSI);
+    TFile.WriteAllText(FStoreFileName,ToJSON(FObject,True),TEncoding.ANSI);
 end;
 
 procedure TJSONStore.FreeStore;
