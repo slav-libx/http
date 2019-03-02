@@ -36,7 +36,7 @@ function HTTPChangeResourceNameExt(const ResourceName,ContentType: string): stri
 procedure HTTPSplitURL(const URL: string; out Protocol,Host,Resource: string);
 procedure HTTPSplitHost(const Host: string; out HostName,Port: string);
 procedure HTTPSplitResource(const Resource: string; out ResourceName,Query,Fragment: string);
-function HTTPTrySplitResponseResult(Header: TStrings; out Protocol: string; out Code: Integer; out Text: string): Boolean;
+function HTTPTrySplitResponseResult(const Response: string; out Protocol: string; out Code: Integer; out Text: string): Boolean;
 function HTTPTrySplitRequest(const Request: string; out AMethod,AResource,AProtocol: string): Boolean;
 function HTTPGetHeaderValue(Header: TStrings; const Name: string): string;
 procedure HTTPSetHeaderValue(Header: TStrings; const Name,Value: string);
@@ -134,11 +134,33 @@ begin
 end;
 
 function HTTPEncodeResource(const Resource: string): string;
+var ResourceName,Query,Fragment: string;
 begin
   try
-    Result:=TNetEncoding.URL.Encode(Resource);
-    Result:=Result.Replace('%2F','/',[rfReplaceAll]);
-    Result:=Result.Replace('+','%20',[rfReplaceAll]);
+
+    HTTPSplitResource(Resource,ResourceName,Query,Fragment);
+
+    Result:=
+      TNetEncoding.URL.Encode(ResourceName).
+        Replace('%2F','/').
+        Replace('+','%20');
+//        Replace('%3F','?')
+//        Replace('%3D','=').
+//        Replace('%26','&');
+//        Replace('%5B','[').
+//        Replace('%5D',']').
+//        Replace('%3A',':');
+
+    if Query<>'' then Result:=Result+'?'+
+      TNetEncoding.URL.Encode(Query).
+//        Replace('%2F','/').
+//        Replace('+','%20').
+        Replace('%3D','=').
+        Replace('%26','&');
+
+    if Fragment<>'' then Result:=Result+'#'+
+      TNetEncoding.URL.Encode(Fragment);
+
   except
   on E: EConvertError do Exit(Resource);
   else raise;
@@ -224,7 +246,7 @@ begin
   if Extension<>'' then
   begin
 
-    P:=ResourceName.LastDelimiter('.'+RESOURCE_DELIMITER);
+    P:=ResourceName.LastDelimiter('./');
 
     if (P<0) or (ResourceName.Chars[P]<>'.') then
 
@@ -294,16 +316,14 @@ begin
   Result:=ResourceName.Replace('/','\',[rfReplaceAll]);
 end;
 
-function HTTPTrySplitResponseResult(Header: TStrings; out Protocol: string; out Code: Integer; out Text: string): Boolean;
-var Index1,Index2: Integer; S: string;
+function HTTPTrySplitResponseResult(const Response: string; out Protocol: string; out Code: Integer; out Text: string): Boolean;
+var Index1,Index2: Integer;
 begin
-  if Header.Count=0 then Exit(False);
-  S:=Header[0];
-  Index1:=S.IndexOf(' ',0)+1;
-  Index2:=S.IndexOf(' ',Index1);
-  Result:=TryStrToInt(S.Substring(Index1,Index2-Index1),Code);
-  Protocol:=S.Substring(0,Index1-1);
-  Text:=S.Substring(Index2+1);
+  Index1:=Response.IndexOf(' ',0)+1;
+  Index2:=Response.IndexOf(' ',Index1);
+  Result:=TryStrToInt(Response.Substring(Index1,Index2-Index1),Code);
+  Protocol:=Response.Substring(0,Index1-1);
+  Text:=Response.Substring(Index2+1);
 end;
 
 function HTTPTrySplitRequest(const Request: string; out AMethod,AResource,AProtocol: string): Boolean;

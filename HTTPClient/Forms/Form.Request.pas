@@ -84,7 +84,7 @@ end;
 procedure TRequestForm.SetURL(const Value: string);
 begin
   Request.Reset;
-  Request.ParseURL(Value);
+  Request.DecomposeURL(Value);
   Request.Protocol:=PROTOCOL_HTTP11;
   Request.Method:=METHOD_GET;
   Request.AddHeaderValue('Host',Request.Host);
@@ -107,7 +107,7 @@ begin
 
   if Result then
   begin
-    FRequest.ParseURL(RequestEdit.Text);
+    FRequest.DecomposeURL(RequestEdit.Text);
     FRequest.Protocol:=ProtocolComboBox.Text;
     FRequest.Method:=MethodComboBox.Text;
     FRequest.Headers.Assign(HeadersMemo.Lines);

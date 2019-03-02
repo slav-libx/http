@@ -140,7 +140,7 @@ begin
 
   end;
 
-  WriteString(Response.SendHeaders);
+  WriteString(Response.Compose);
 
   Write(Response.Content);
 

@@ -6,7 +6,7 @@ uses
   System.SysUtils,
   System.JSON;
 
-function ToJSON(jsValue: TJSONValue; const IndentValue: string=''): string;
+function ToJSON(jsValue: TJSONValue; ValuesJSONFormat: Boolean): string;
 
 implementation
 
@@ -23,12 +23,20 @@ begin
   if not IsSimpleValue(jsItem) then Exit(False);
 end;
 
+function ToString(jsValue: TJSONValue; ValuesJSONFormat: Boolean): string;
+begin
+  if ValuesJSONFormat then
+    Result:=jsValue.ToJSON
+  else
+    Result:=jsValue.ToString;
+end;
+
 const
   CRLF=#13#10;
   CRLF2=CRLF+CRLF;
   INDENT='  ';
 
-function ToJSON(jsValue: TJSONValue; const IndentValue: string=''): string;
+function ValueToJSON(jsValue: TJSONValue; const IndentValue: string; ValuesJSONFormat: Boolean): string;
 var
   jsPair: TJSONPair;
   jsItem: TJSONValue;
@@ -38,8 +46,8 @@ begin
   begin
     Result:='';
     for jsPair in TJSONObject(jsValue) do
-      Result:=Result+IndentValue+INDENT+jsPair.JsonString.ToJSON+': '+
-        ToJSON(jsPair.JsonValue,IndentValue+INDENT)+','+CRLF;
+      Result:=Result+IndentValue+INDENT+ToString(jsPair.JsonString,ValuesJSONFormat)+': '+
+        ValueToJSON(jsPair.JsonValue,IndentValue+INDENT,ValuesJSONFormat)+','+CRLF;
     Result:=Result.Remove(Result.Length-CRLF.Length-1);
     if Result.Length>0 then Result:=CRLF+Result+CRLF+IndentValue;
     Result:='{'+Result+'}';
@@ -51,12 +59,12 @@ begin
     if IsSimpleArray(TJSONArray(jsValue)) then
     begin
       for jsItem in TJSONArray(jsValue) do
-        Result:=Result+jsItem.ToJSON+',';
+        Result:=Result+ToString(jsItem,ValuesJSONFormat)+',';
       Result:='['+Result.Remove(Result.Length-1)+']';
     end else begin
       for jsItem in TJSONArray(jsValue) do
         Result:=Result+IndentValue+INDENT+
-          ToJSON(jsItem,IndentValue+INDENT)+','+CRLF;
+          ValueToJSON(jsItem,IndentValue+INDENT,ValuesJSONFormat)+','+CRLF;
       Result:=Result.Remove(Result.Length-CRLF.Length-1);
       if Result.Length>0 then Result:=CRLF+Result+CRLF;
       Result:='['+Result+IndentValue+']';
@@ -64,8 +72,13 @@ begin
 
   end else
 
-    Result:=jsValue.ToJSON;
+    Result:=ToString(jsValue,ValuesJSONFormat);
 
+end;
+
+function ToJSON(jsValue: TJSONValue; ValuesJSONFormat: Boolean): string;
+begin
+  Result:=ValueToJSON(jsValue,'',ValuesJSONFormat);
 end;
 
 end.

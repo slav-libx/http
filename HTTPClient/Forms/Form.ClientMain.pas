@@ -209,7 +209,7 @@ begin
 
   if C.Response.ResultCode=HTTPCODE_MOVED_PERMANENTLY then
   begin
-    C.Request.ParseURL(C.Response.GetHeaderValue('Location'));
+    C.Request.DecomposeURL(C.Response.GetHeaderValue('Location'));
     C.Request.AddHeaderValue('Host',C.Request.Host);
     C.SendRequest;
   end;

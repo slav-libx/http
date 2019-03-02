@@ -152,7 +152,7 @@ end;
 procedure THTTPClient.DoRequest;
 begin
 
-  WriteString(Request.SendHeaders);
+  WriteString(Request.Compose);
   Write(Request.Content);
 
   if Assigned(FOnRequest) then FOnRequest(Self);
@@ -171,7 +171,7 @@ begin
     Request.Reset;
     Request.Protocol:=PROTOCOL_HTTP11;
     Request.Method:=METHOD_GET;
-    Request.ParseURL(FURLs.Read);
+    Request.DecomposeURL(FURLs.Read);
     Request.AddHeaderValue('Host',Request.Host);
     Request.AddHeaderKeepAlive(KeepAlive,KeepAliveTimeout);
 

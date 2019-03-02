@@ -79,7 +79,7 @@ begin
       jsText:=TEncoding.UTF8.GetString(Content.Content);
       jsValue:=TJSONObject.ParseJSONValue(jsText);
       if Assigned(jsValue) then
-        Strings.Text:=ToJSON(jsValue)
+        Strings.Text:=ToJSON(jsValue,False)
       else
         Strings.Text:=jsText;
     end else
@@ -154,9 +154,7 @@ begin
 
   end else begin
 
-    ToLog(
-      Request.Method+' '+Request.Resource+CRLF+
-      Request.Headers.Text);
+    ToLog(Request.Composes);
 
     ShowContentText(Request,RequestMemo.Lines);
 
@@ -176,9 +174,7 @@ begin
 
   end else begin
 
-    ToLog(Response.ResultCode.ToString+' '+
-      Response.ResultText+CRLF+
-      Response.Headers.Text);
+    ToLog(Response.Composes);
 
     ShowContentPicture(Response,ContentImage);
 

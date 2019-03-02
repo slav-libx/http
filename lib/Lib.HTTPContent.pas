@@ -18,15 +18,18 @@ type
     FHeaderLength: Integer;
     FContentLength: Integer;
     FContentReaded: Integer;
+    FContentType: string;
     FHeaders: TStrings;
     FOnHeader: TNotifyEvent;
     FOnContent: TNotifyEvent;
     FOnComplete: TNotifyEvent;
     procedure DoBeginRead;
   protected
+    FComposes: string;
     procedure DoHeader; virtual;
     procedure DoContent; virtual;
     procedure DoComplete; virtual;
+    procedure ComposeHeaders;
   public
     Protocol: string;
     Content: TBytes;
@@ -51,7 +54,7 @@ type
     procedure Reset; virtual;
     procedure Assign(Source: TContent); virtual;
     function DoRead(const B: TBytes): Integer;
-    function SendHeaders: string; virtual;
+    property Composes: string read FComposes;
   public
     property ContentLength: Integer read FContentLength;
     property ContentReaded: Integer read FContentReaded;
@@ -72,8 +75,8 @@ type
     Fragment: string;
     procedure Reset; override;
     procedure Assign(Source: TContent); override;
-    procedure ParseURL(const URL: string);
-    function SendHeaders: string; override;
+    procedure DecomposeURL(const URL: string);
+    function Compose: string;
     procedure Merge;
   end;
 
@@ -85,7 +88,7 @@ type
     ResultText: string;
     procedure Reset; override;
     procedure Assign(Source: TContent); override;
-    function SendHeaders: string; override;
+    function Compose: string;
     procedure SetResult(Code: Integer; const Text: string);
     procedure Merge(Request: TRequest);
   end;
@@ -114,6 +117,8 @@ procedure TContent.Reset;
 begin
   FContentReaded:=0;
   FContentLength:=0;
+  FContentType:='';
+  FComposes:='';
   FHeaders.Clear;
   Content:=nil;
   Protocol:='';
@@ -125,6 +130,7 @@ end;
 procedure TContent.Assign(Source: TContent);
 begin
   Headers.Assign(Source.Headers);
+  FContentType:=Source.FContentType;
   Content:=Source.Content;
   Protocol:=Source.Protocol;
   ResourceName:=Source.ResourceName;
@@ -155,8 +161,8 @@ end;
 
 procedure TContent.AddContentText(const Text,ContentType: string);
 begin
-  Content:=TEncoding.Default.GetBytes(Text);
-  AddHeaderValue('Content-Type',ContentType);
+  Content:=TEncoding.UTF8.GetBytes(Text);
+  FContentType:=ContentType+'; charset=utf-8';
   Description:=Text;
 end;
 
@@ -168,7 +174,7 @@ end;
 procedure TContent.AddContentFile(const FileName,ContentType: string);
 begin
   Content:=TFile.ReadAllBytes(FileName);
-  AddHeaderValue('Content-Type',ContentType);
+  FContentType:=ContentType;
   Description:=FileName+' ('+ContentSizeToString(Content)+')';
 end;
 
@@ -314,18 +320,14 @@ begin
   if Assigned(FOnComplete) then FOnComplete(Self);
 end;
 
-function TContent.SendHeaders: string;
-var S: string;
+procedure TContent.ComposeHeaders;
 begin
 
   if Length(Content)>0 then
+  begin
+    AddHeaderValue('Content-Type',FContentType);
     AddHeaderValue('Content-Length',Length(Content).ToString);
-
-  Result:='';
-
-  for S in Headers do Result:=Result+S+CRLF;
-
-  Result:=Result+CRLF;
+  end;
 
 end;
 
@@ -358,19 +360,23 @@ begin
   end;
 end;
 
-procedure TRequest.ParseURL(const URL: string);
+procedure TRequest.DecomposeURL(const URL: string);
 begin
   HTTPSplitURL(URL,Scheme,Host,Resource);
 end;
 
-function TRequest.SendHeaders: string;
+function TRequest.Compose: string;
 begin
-  Result:=inherited;
-  Result:=Method+' '+HTTPEncodeResource(Resource)+' '+Protocol+CRLF+Result;
+  ComposeHeaders;
+  FComposes:=Method+' '+HTTPEncodeResource(Resource)+' '+Protocol+CRLF+
+    Headers.Text;
+  Result:=FComposes+CRLF;
 end;
 
 procedure TRequest.DoHeader;
 begin
+
+  FComposes:=Headers.Text;
 
   if Headers.Count>0 then
   if HTTPTrySplitRequest(Headers[0],Method,Resource,Protocol) then
@@ -419,16 +425,21 @@ begin
   ResultText:=Text;
 end;
 
-function TResponse.SendHeaders: string;
+function TResponse.Compose: string;
 begin
-  Result:=inherited;
-  Result:=Protocol+' '+ResultCode.ToString+' '+ResultText+CRLF+Result;
+  ComposeHeaders;
+  FComposes:=Protocol+' '+ResultCode.ToString+' '+ResultText+CRLF+
+    Headers.Text;
+  Result:=FComposes+CRLF;
 end;
 
 procedure TResponse.DoHeader;
 begin
 
-  if HTTPTrySplitResponseResult(Headers,Protocol,ResultCode,ResultText) then
+  FComposes:=Headers.Text;
+
+  if Headers.Count>0 then
+  if HTTPTrySplitResponseResult(Headers[0],Protocol,ResultCode,ResultText) then
   begin
 
     Headers.Delete(0);
@@ -453,7 +464,7 @@ begin
   if LocalResource='' then
     LocalResource:='file'
   else
-  if LocalResource=RESOURCE_DELIMITER then
+  if LocalResource='/' then
     LocalResource:='page';
 
   LocalResource:=

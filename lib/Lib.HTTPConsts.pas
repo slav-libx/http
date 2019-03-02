@@ -19,8 +19,6 @@ const
   HTTPCODE_METHOD_NOT_ALLOWED = 405;
   HTTPCODE_NOT_SUPPORTED = 505;
 
-  RESOURCE_DELIMITER = '/';
-
   content_404 =
 
     '<html>'+CRLF+
