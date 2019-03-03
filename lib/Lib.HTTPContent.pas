@@ -325,7 +325,8 @@ begin
 
   if Length(Content)>0 then
   begin
-    AddHeaderValue('Content-Type',FContentType);
+    if FContentType<>'' then
+      AddHeaderValue('Content-Type',FContentType);
     AddHeaderValue('Content-Length',Length(Content).ToString);
   end;
 
@@ -450,6 +451,7 @@ begin
 end;
 
 procedure TResponse.Merge(Request: TRequest);
+var ContentDispositionFileName: string;
 begin
 
   ResourceName:=
@@ -457,6 +459,11 @@ begin
     HTTPDecodeResource(Request.Resource));
 
   LocalResource:=ResourceName;
+
+  ContentDispositionFileName:=
+    HTTPGetTagValue(
+    HTTPGetTag(
+    GetHeaderValue('Content-Disposition'),'filename'));
 
   if ResultCode<>HTTPCODE_SUCCESS then
     LocalResource:='error'+ResultCode.ToString
@@ -470,6 +477,9 @@ begin
   LocalResource:=
     HTTPResourceNameToLocal(
     HTTPChangeResourceNameExt(LocalResource,ContentType));
+
+  if ContentDispositionFileName<>'' then
+    LocalResource:=ExtractFilePath(LocalResource)+ContentDispositionFileName;
 
   Description:=ResourceName+' ('+ContentSizeToString(Content)+')';
 

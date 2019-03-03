@@ -194,7 +194,7 @@ begin
 end;
 
 procedure TForm2.OnClientResponse(Sender: TObject);
-var C: THTTPClient; ContentFileName: string;
+var C: THTTPClient; ContentFileName,Location: string;
 begin
 
   C:=THTTPClient(Sender);
@@ -207,9 +207,11 @@ begin
     TFile.WriteAllBytes(ContentFileName,C.Response.Content);
   end;
 
-  if C.Response.ResultCode=HTTPCODE_MOVED_PERMANENTLY then
+  Location:=C.Response.GetHeaderValue('Location');
+
+  if Location<>'' then
   begin
-    C.Request.DecomposeURL(C.Response.GetHeaderValue('Location'));
+    C.Request.DecomposeURL(Location);
     C.Request.AddHeaderValue('Host',C.Request.Host);
     C.SendRequest;
   end;
