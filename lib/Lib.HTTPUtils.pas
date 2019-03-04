@@ -410,7 +410,7 @@ var P: Integer;
 begin
   Result:='';
   P:=Tag.IndexOf('=');
-  if P<>-1 then Result:=Tag.Substring(P+1).Trim;
+  if P<>-1 then Result:=Tag.Substring(P+1).Trim([' ','"','''']);
 end;
 
 function HTTPEndedChunked(const B: TBytes): Boolean;
