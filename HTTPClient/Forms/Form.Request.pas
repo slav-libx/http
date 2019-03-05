@@ -87,7 +87,7 @@ begin
   Request.DecomposeURL(Value);
   Request.Protocol:=PROTOCOL_HTTP11;
   Request.Method:=METHOD_GET;
-  Request.AddHeaderValue('Host',Request.Host);
+  Request.Headers.SetValue('Host',Request.Host);
   RequestEdit.Text:=Value;
 end;
 
@@ -99,7 +99,7 @@ begin
   MethodComboBox.ItemIndex:=MethodComboBox.Items.IndexOf(FRequest.Method.ToUpper);
   HeaderNameComboBox.OnChange(nil);
   ContentTypeComboBox.ItemIndex:=0;
-  HeadersMemo.Lines.Assign(FRequest.Headers);
+  HeadersMemo.Lines.Text:=FRequest.Headers.Text;
   HeaderNameComboBox.Text:='';
   HeaderValueComboBox.Text:='';
 
@@ -110,7 +110,7 @@ begin
     FRequest.DecomposeURL(RequestEdit.Text);
     FRequest.Protocol:=ProtocolComboBox.Text;
     FRequest.Method:=MethodComboBox.Text;
-    FRequest.Headers.Assign(HeadersMemo.Lines);
+    FRequest.Headers.Text:=HeadersMemo.Lines.Text;
     if FContentFileName<>'' then
       FRequest.AddContentFile(FContentFileName,ContentTypeComboBox.Text)
     else

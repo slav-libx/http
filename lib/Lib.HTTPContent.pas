@@ -7,7 +7,8 @@ uses
   System.Classes,
   System.IOUtils,
   Lib.HTTPConsts,
-  Lib.HTTPUtils;
+  Lib.HTTPUtils,
+  Lib.HTTPHeaders;
 
 type
   TContent = class
@@ -19,7 +20,7 @@ type
     FContentLength: Integer;
     FContentReaded: Integer;
     FContentType: string;
-    FHeaders: TStrings;
+    FHeaders: THeaders;
     FOnHeader: TNotifyEvent;
     FOnContent: TNotifyEvent;
     FOnComplete: TNotifyEvent;
@@ -38,18 +39,11 @@ type
     Description: string;
     constructor Create; virtual;
     destructor Destroy; override;
-    procedure AddHeaderValue(const Name,Value: string);
-    procedure AddHeaderKeepAlive(KeepAlive: Boolean; Timeout: Integer);
     procedure AddContentText(const Text: string); overload;
     procedure AddContentText(const Text,ContentType: string); overload;
     procedure AddContentFile(const FileName: string); overload;
     procedure AddContentFile(const FileName,ContentType: string); overload;
-    function GetHeaderValue(const Name: string): string;
-    function ConnectionClose: Boolean;
-    function ConnectionKeepAlive: Boolean;
-    function KeepAliveTimeout: Integer;
-    function ContentType: string;
-    property Headers: TStrings read FHeaders;
+    property Headers: THeaders read FHeaders;
   public
     procedure Reset; virtual;
     procedure Assign(Source: TContent); virtual;
@@ -102,7 +96,7 @@ end;
 
 constructor TContent.Create;
 begin
-  FHeaders:=TStringList.Create;
+  FHeaders:=THeaders.Create;
   Reset;
 end;
 
@@ -138,22 +132,6 @@ begin
   Description:=Source.Description;
 end;
 
-procedure TContent.AddHeaderValue(const Name,Value: string);
-begin
-  HTTPSetHeaderValue(Headers,Name,Value);
-end;
-
-procedure TContent.AddHeaderKeepAlive(KeepAlive: Boolean; Timeout: Integer);
-begin
-  if KeepAlive then
-  begin
-    AddHeaderValue('Connection','keep-alive');
-    if Timeout>0 then
-      AddHeaderValue('Keep-Alive','timeout='+Timeout.ToString);
-  end else
-    AddHeaderValue('Connection','close');
-end;
-
 procedure TContent.AddContentText(const Text: string);
 begin
   AddContentText(Text,HTTPGetMIMEType('.txt'));
@@ -176,38 +154,6 @@ begin
   Content:=TFile.ReadAllBytes(FileName);
   FContentType:=ContentType;
   Description:=FileName+' ('+ContentSizeToString(Content)+')';
-end;
-
-function TContent.GetHeaderValue(const Name: string): string;
-begin
-  Result:=HTTPGetHeaderValue(Headers,Name);
-end;
-
-function TContent.ConnectionClose: Boolean;
-begin
-  Result:=SameText(GetHeaderValue('Connection'),'close');
-end;
-
-function TContent.ConnectionKeepAlive: Boolean;
-begin
-  Result:=SameText(GetHeaderValue('Connection'),'keep-alive');
-end;
-
-function TContent.KeepAliveTimeout: Integer;
-var TagTimeout: string;
-begin
-  Result:=0;
-  TagTimeout:=HTTPGetTag(GetHeaderValue('Keep-Alive'),'timeout');
-  if TagTimeout<>'' then
-    Result:=StrToIntDef(HTTPGetTagValue(TagTimeout),0);
-end;
-
-function TContent.ContentType: string;
-var P: Integer;
-begin
-  Result:=GetHeaderValue('Content-Type');
-  P:=Result.IndexOf(';');
-  if P>-1 then Result:=Result.Substring(0,P).Trim;
 end;
 
 procedure TContent.DoBeginRead;
@@ -255,10 +201,10 @@ begin
       SetLength(Content,L);
       FContentReaded:=L;
 
-      if TryStrToInt(GetHeaderValue('Content-Length'),FContentLength) then
+      if TryStrToInt(Headers.GetValue('Content-Length'),FContentLength) then
         FState:=stContentLength
       else
-      if GetHeaderValue('Transfer-Encoding')='chunked' then
+      if Headers.GetValue('Transfer-Encoding')='chunked' then
         FState:=stChunked
       else
         FState:=stUnknownLength;
@@ -326,8 +272,8 @@ begin
   if Length(Content)>0 then
   begin
     if FContentType<>'' then
-      AddHeaderValue('Content-Type',FContentType);
-    AddHeaderValue('Content-Length',Length(Content).ToString);
+      Headers.SetValue('Content-Type',FContentType);
+    Headers.SetValue('Content-Length',Length(Content).ToString);
   end;
 
 end;
@@ -379,11 +325,10 @@ begin
 
   FComposes:=Headers.Text;
 
-  if Headers.Count>0 then
-  if HTTPTrySplitRequest(Headers[0],Method,Resource,Protocol) then
+  if HTTPTrySplitRequest(Headers.FirstLine,Method,Resource,Protocol) then
   begin
 
-    Headers.Delete(0);
+    Headers.DeleteFirstLine;
 
   end;
 
@@ -394,7 +339,7 @@ end;
 procedure TRequest.Merge;
 begin
   ResourceName:=HTTPExtractResourceName(HTTPDecodeResource(Resource));
-  Description:=ContentType+' ('+ContentSizeToString(Content)+')';
+  Description:=Headers.ContentType+' ('+ContentSizeToString(Content)+')';
 end;
 
 { TResponse }
@@ -439,11 +384,10 @@ begin
 
   FComposes:=Headers.Text;
 
-  if Headers.Count>0 then
-  if HTTPTrySplitResponseResult(Headers[0],Protocol,ResultCode,ResultText) then
+  if HTTPTrySplitResponseResult(Headers.FirstLine,Protocol,ResultCode,ResultText) then
   begin
 
-    Headers.Delete(0);
+    Headers.DeleteFirstLine;
 
   end;
 
@@ -463,7 +407,7 @@ begin
   ContentDispositionFileName:=
     HTTPGetTagValue(
     HTTPGetTag(
-    GetHeaderValue('Content-Disposition'),'filename'));
+    Headers.GetValue('Content-Disposition'),'filename'));
 
   if ResultCode<>HTTPCODE_SUCCESS then
     LocalResource:='error'+ResultCode.ToString
@@ -476,7 +420,7 @@ begin
 
   LocalResource:=
     HTTPResourceNameToLocal(
-    HTTPChangeResourceNameExt(LocalResource,ContentType));
+    HTTPChangeResourceNameExt(LocalResource,Headers.ContentType));
 
   if ContentDispositionFileName<>'' then
     LocalResource:=ExtractFilePath(LocalResource)+ContentDispositionFileName;

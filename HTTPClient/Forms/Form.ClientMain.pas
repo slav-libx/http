@@ -146,7 +146,7 @@ begin
 
   F:=TRequestForm.Create(Self);
   F.SetURL(Edit1.Text);
-  F.Request.AddHeaderKeepAlive(CheckBox1.Checked,StrToInt64Def(Edit2.Text,0));
+  F.Request.Headers.SetConnection(CheckBox1.Checked,StrToInt64Def(Edit2.Text,0));
 
   if F.Execute then
   begin
@@ -207,12 +207,12 @@ begin
     TFile.WriteAllBytes(ContentFileName,C.Response.Content);
   end;
 
-  Location:=C.Response.GetHeaderValue('Location');
+  Location:=C.Response.Headers.GetValue('Location');
 
   if Location<>'' then
   begin
     C.Request.DecomposeURL(Location);
-    C.Request.AddHeaderValue('Host',C.Request.Host);
+    C.Request.Headers.SetValue('Host',C.Request.Host);
     C.SendRequest;
   end;
 

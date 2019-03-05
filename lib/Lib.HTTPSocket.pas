@@ -45,7 +45,7 @@ begin
 
   FKeepAlive:=True;
   FKeepAliveTimeout:=10;
-  FReadTimeout:=10000;
+  FReadTimeout:=30000;
 
   FRequest:=TRequest.Create;
 

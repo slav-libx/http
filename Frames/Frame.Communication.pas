@@ -66,7 +66,7 @@ begin
 
   Strings.Clear;
 
-  ContentType:=Content.ContentType;
+  ContentType:=Content.Headers.ContentType;
 
   try
 

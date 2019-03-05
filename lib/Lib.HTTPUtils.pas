@@ -38,10 +38,9 @@ procedure HTTPSplitHost(const Host: string; out HostName,Port: string);
 procedure HTTPSplitResource(const Resource: string; out ResourceName,Query,Fragment: string);
 function HTTPTrySplitResponseResult(const Response: string; out Protocol: string; out Code: Integer; out Text: string): Boolean;
 function HTTPTrySplitRequest(const Request: string; out AMethod,AResource,AProtocol: string): Boolean;
-function HTTPGetHeaderValue(Header: TStrings; const Name: string): string;
-procedure HTTPSetHeaderValue(Header: TStrings; const Name,Value: string);
 function HTTPGetTag(const Value,Tag: string): string;
 function HTTPGetTagValue(const Tag: string): string;
+function HTTPGetValue(const S: string): string;
 function HTTPEndedChunked(const B: TBytes): Boolean;
 function HTTPBytesFromChunked(const B: TBytes): TBytes;
 function HTTPGetHeaderLength(const B: TBytes): Integer;
@@ -377,26 +376,6 @@ begin
   Result:=BytesIndexOf(B,[13,10,13,10]);
 end;
 
-function HTTPGetHeaderValue(Header: TStrings; const Name: string): string;
-var S: string;
-begin
-  Result:='';
-  for S in Header do if S.StartsWith(Name+': ') then
-    Exit(S.Substring(Name.Length+2));
-end;
-
-procedure HTTPSetHeaderValue(Header: TStrings; const Name,Value: string);
-var I: Integer;
-begin
-  for I:=0 to Header.Count-1 do
-  if Header[I].StartsWith(Name+': ') then
-  begin
-    Header[I]:=Name+': '+Value;
-    Exit;
-  end;
-  Header.Add(Name+': '+Value);
-end;
-
 function HTTPGetTag(const Value,Tag: string): string;
 var S: string;
 begin
@@ -411,6 +390,14 @@ begin
   Result:='';
   P:=Tag.IndexOf('=');
   if P<>-1 then Result:=Tag.Substring(P+1).Trim([' ','"','''']);
+end;
+
+function HTTPGetValue(const S: string): string;
+var P: Integer;
+begin
+  Result:='';
+  P:=S.IndexOf(':');
+  if P<>-1 then Result:=S.Substring(P+1).Trim([' ']);
 end;
 
 function HTTPEndedChunked(const B: TBytes): Boolean;

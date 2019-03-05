@@ -88,7 +88,7 @@ begin
 
   if Assigned(FOnRequest) then FOnRequest(Self);
 
-  FKeepConnection:=KeepAlive and (KeepAliveTimeout>0) and Request.ConnectionKeepAlive;
+  FKeepConnection:=KeepAlive and (KeepAliveTimeout>0) and Request.Headers.ConnectionKeepAlive;
 
   DoResponse;
 
@@ -115,7 +115,7 @@ begin
 
   Response.Reset;
   Response.Protocol:=PROTOCOL_HTTP11;
-  Response.AddHeaderKeepAlive(FKeepConnection,KeepAliveTimeout);
+  Response.Headers.SetConnection(FKeepConnection,KeepAliveTimeout);
 
   if Request.Protocol<>PROTOCOL_HTTP11 then
   begin

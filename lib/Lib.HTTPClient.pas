@@ -119,7 +119,7 @@ begin
 
   FActive:=False;
 
-  if not KeepAlive or Response.ConnectionClose then
+  if not KeepAlive or Response.Headers.ConnectionClose then
   begin
 
     DoConnectionClose;
@@ -127,7 +127,7 @@ begin
 
   end else begin
 
-    Timeout:=Response.KeepAliveTimeout;
+    Timeout:=Response.Headers.KeepAliveTimeout;
     if Timeout=0 then Timeout:=KeepAliveTimeout;
 
   end;
@@ -172,8 +172,8 @@ begin
     Request.Protocol:=PROTOCOL_HTTP11;
     Request.Method:=METHOD_GET;
     Request.DecomposeURL(FURLs.Read);
-    Request.AddHeaderValue('Host',Request.Host);
-    Request.AddHeaderKeepAlive(KeepAlive,KeepAliveTimeout);
+    Request.Headers.SetValue('Host',Request.Host);
+    Request.Headers.SetConnection(KeepAlive,KeepAliveTimeout);
 
     SendRequest;
 

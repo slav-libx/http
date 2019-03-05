@@ -64,7 +64,7 @@ begin
 
   Result:=False;
 
-  if CreatePictureGraphic(Picture,Content.ContentType) then
+  if CreatePictureGraphic(Picture,Content.Headers.ContentType) then
   try
     Stream:=TContentStream.Create(Content.Content);
     try
