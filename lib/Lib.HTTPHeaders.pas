@@ -7,12 +7,12 @@ uses
   Lib.HTTPUtils;
 
 type
-  TLocation = record
-    Pos: Integer;
-    Len: Integer;
-  end;
-
   THeaders = class
+  private type
+    TLocation = record
+      Pos: Integer;
+      Len: Integer;
+    end;
   private
     FData: string;
     function GetLocation(const Name: string): TLocation;

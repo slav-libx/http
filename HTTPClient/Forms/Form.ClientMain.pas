@@ -56,6 +56,8 @@ type
   private
     FHTTPClient: THTTPClient;
     FStore: TJSONStore;
+    procedure StoreRead;
+    procedure StoreWrite;
     procedure CreateClient;
     procedure OnClientClose(Sender: TObject);
     procedure OnClientRequest(Sender: TObject);
@@ -76,8 +78,19 @@ implementation
 
 procedure TForm2.FormCreate(Sender: TObject);
 begin
-
   FStore:=TJSONStore.Create(ExtractFilePath(ParamStr(0))+'client-store.json');
+  StoreRead;
+  CommunicationFrame.Reset;
+end;
+
+procedure TForm2.FormDestroy(Sender: TObject);
+begin
+  StoreWrite;
+  FStore.Free;
+end;
+
+procedure TForm2.StoreRead;
+begin
 
   BoundsRect:=FStore.ReadRect('form.bounds',BoundsRect);
   Edit1.Text:=FStore.ReadString('url-edit');
@@ -86,11 +99,9 @@ begin
   CheckBox1.Checked:=FStore.ReadBool('keep-alive.enabled',False);
   FStore.ReadStrings('urls',ListBox1.Items);
 
-  CommunicationFrame.Reset;
-
 end;
 
-procedure TForm2.FormDestroy(Sender: TObject);
+procedure TForm2.StoreWrite;
 begin
 
   if WindowState=TWindowState.wsNormal then
@@ -100,8 +111,6 @@ begin
   FStore.WriteInteger('keep-alive.timeout',StrToIntDef(Edit2.Text,10));
   FStore.WriteBool('keep-alive.enabled',CheckBox1.Checked);
   FStore.WriteStrings('urls',ListBox1.Items);
-
-  FStore.Free;
 
 end;
 
@@ -124,6 +133,8 @@ begin
   begin
     ListBox1.Items.Add(Edit1.Text);
     ListBox1.ItemIndex:=ListBox1.Items.Count-1;
+    StoreWrite;
+    FStore.Flush;
   end;
 end;
 
@@ -146,7 +157,7 @@ begin
 
   F:=TRequestForm.Create(Self);
   F.SetURL(Edit1.Text);
-  F.Request.Headers.SetConnection(CheckBox1.Checked,StrToInt64Def(Edit2.Text,0));
+  F.Request.Headers.SetConnection(CheckBox1.Checked,StrToIntDef(Edit2.Text,0));
 
   if F.Execute then
   begin
@@ -183,7 +194,7 @@ begin
 
   end;
 
-  FHTTPClient.KeepAliveTimeout:=StrToInt64Def(Edit2.Text,0);
+  FHTTPClient.KeepAliveTimeout:=StrToIntDef(Edit2.Text,0);
   FHTTPClient.KeepAlive:=CheckBox1.Checked;
 
 end;
