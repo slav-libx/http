@@ -44,8 +44,6 @@ function HTTPGetValue(const S: string): string;
 function HTTPEndedChunked(const B: TBytes): Boolean;
 function HTTPBytesFromChunked(const B: TBytes): TBytes;
 function HTTPGetHeaderLength(const B: TBytes): Integer;
-function HTTPContentIsText(const ContentType: string): Boolean;
-function HTTPContentIsJSON(const ContentType: string): Boolean;
 
 implementation
 
@@ -422,19 +420,6 @@ begin
     Index:=ChunkIndex+4+ChunkSize;
   end;
   SetLength(Result,ResultIndex);
-end;
-
-function HTTPContentIsText(const ContentType: string): Boolean;
-begin
-  Result:=(ContentType='') or
-    ContentType.StartsWith('text/') or
-    ContentType.StartsWith('application/x-www-form-urlencoded') or
-    ContentType.StartsWith('application/javascript');
-end;
-
-function HTTPContentIsJSON(const ContentType: string): Boolean;
-begin
-  Result:=ContentType.StartsWith('application/json');
 end;
 
 end.

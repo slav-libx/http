@@ -33,6 +33,7 @@ type
     function ConnectionKeepAlive: Boolean;
     function KeepAliveTimeout: Integer;
     function ContentType: string;
+    function ContentTypeCharset: string;
   end;
 
 implementation
@@ -160,6 +161,14 @@ begin
   Result:=GetValue('Content-Type');
   P:=Result.IndexOf(';');
   if P>-1 then Result:=Result.Substring(0,P).Trim;
+end;
+
+function THeaders.ContentTypeCharset: string;
+begin
+  Result:=
+    HTTPGetTagValue(
+    HTTPGetTag(
+    GetValue('Content-Type'),'charset'));
 end;
 
 end.

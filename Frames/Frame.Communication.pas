@@ -58,25 +58,45 @@ implementation
 
 {$R *.dfm}
 
+function ContentIsText(const ContentType: string): Boolean;
+begin
+  Result:=(ContentType='') or
+    ContentType.StartsWith('text/') or
+    ContentType.StartsWith('application/x-www-form-urlencoded') or
+    ContentType.StartsWith('application/javascript');
+end;
+
+function ContentIsJSON(const ContentType: string): Boolean;
+begin
+  Result:=ContentType.StartsWith('application/json');
+end;
+
 procedure ShowContentText(Content: TContent; Strings: TStrings);
 var
-  ContentType,jsText: string;
+  ContentType,ContentTypeCharset,jsText: string;
   jsValue: TJSONValue;
+  Encoding: TEncoding;
 begin
 
   Strings.Clear;
 
   ContentType:=Content.Headers.ContentType;
+  ContentTypeCharset:=Content.Headers.ContentTypeCharset.ToLower;
+
+  if ContentTypeCharset='utf-8' then
+    Encoding:=TEncoding.UTF8
+  else
+    Encoding:=TEncoding.ANSI;
 
   try
 
-    if HTTPContentIsText(ContentType) then
-      Strings.Text:=TEncoding.ANSI.GetString(Content.Content)
+    if ContentIsText(ContentType) then
+      Strings.Text:=Encoding.GetString(Content.Content)
     else
 
-    if HTTPContentIsJSON(ContentType) then
+    if ContentIsJSON(ContentType) then
     begin
-      jsText:=TEncoding.UTF8.GetString(Content.Content);
+      jsText:=Encoding.GetString(Content.Content);
       jsValue:=TJSONObject.ParseJSONValue(jsText);
       if Assigned(jsValue) then
         Strings.Text:=ToJSON(jsValue,False)

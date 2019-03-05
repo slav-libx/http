@@ -89,7 +89,7 @@ end;
 
 procedure THTTPClient.DoConnectionClose;
 begin
-  DoMessage(ToString+' close');
+  if FSocket>0 then DoMessage(ToString+' close');
   FHost:='';
   Close;
 end;
@@ -188,7 +188,7 @@ procedure THTTPClient.SendRequest;
 var
   Port: Integer;
   HostName,HostPort: string;
-  ProtocolUseSSL: Boolean;
+  SSLScheme: Boolean;
 begin
 
   if FActive then
@@ -196,9 +196,9 @@ begin
 
   HTTPSplitHost(Request.Host,HostName,HostPort);
 
-  ProtocolUseSSL:=SameText(Request.Scheme,SCHEME_HTTPS);
+  SSLScheme:=SameText(Request.Scheme,SCHEME_HTTPS);
 
-  if ProtocolUseSSL then
+  if SSLScheme then
     Port:=StrToIntDef(HostPort,HTTPS_PORT)
   else
     Port:=StrToIntDef(HostPort,HTTP_PORT);
@@ -207,8 +207,8 @@ begin
 
   if (FHost='') or (FHostName<>HostName) or (FPort<>Port) then
   begin
-    if FSocket>0 then DoConnectionClose;
-    UseSSL:=ProtocolUseSSL;
+    DoConnectionClose;
+    UseSSL:=SSLScheme;
     if not ConnectTo(HostName,Port) then Exit;
   end;
 
