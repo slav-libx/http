@@ -8,19 +8,18 @@ uses
   System.IOUtils,
   System.Classes,
   System.JSON,
+  Lib.JSON.Utils,
   Lib.JSON.Format;
 
 type
   TJSONStore = class
+  private type
+    TStoreSource = (None,Owned,NewFile,ExistingFile,BadFile);
   private
-    FOwned: Boolean;
+    FStoreSource: TStoreSource;
     FObject: TJSONObject;
     FStoreFileName: string;
     procedure CreateStore;
-    procedure FreeStore;
-    function ForceObject(const Path: string; jsRoot: TJSONObject; Created: Boolean): TJSONObject;
-    function TryGetObject(jsRoot: TJSONObject; const Name: string; out jsObject: TJSONObject; out PairName: string; Created: Boolean): Boolean;
-    procedure SetValue(jsRoot: TJSONObject; const Name: string; jsValue: TJSONValue);
     function GetValue<T>(jsRoot: TJSONObject; const Name: string; out Value: T): Boolean;
   public
     procedure WriteString(const Name: string; const Value: string);
@@ -46,133 +45,66 @@ type
 
 implementation
 
-function ValueToInt(AValue: TJSONValue; Default: Integer=0): Integer;
-begin
-  Result:=Default;
-  if Assigned(AValue) then Result:=AValue.GetValue<Integer>;
-end;
-
-function RectToJSON(const Rect: TRect): TJSONObject;
-begin
-  Result:=TJSONObject.Create;
-  Result.AddPair('left',TJSONNumber.Create(Rect.Left));
-  Result.AddPair('top',TJSONNumber.Create(Rect.Top));
-  Result.AddPair('right',TJSONNumber.Create(Rect.Right));
-  Result.AddPair('bottom',TJSONNumber.Create(Rect.Bottom));
-end;
-
-function JSONToRect(jsRect: TJSONObject; const Default: TRect): TRect;
-begin
-  Result:=Rect(
-  ValueToInt(jsRect.Values['left'],Default.Left),
-  ValueToInt(jsRect.Values['top'],Default.Top),
-  ValueToInt(jsRect.Values['right'],Default.Right),
-  ValueToInt(jsRect.Values['bottom'],Default.Bottom));
-end;
-
 constructor TJSONStore.Create(const StoreFileName: string);
 begin
-  FOwned:=False;
+  FStoreSource:=TStoreSource.None;
   FObject:=nil;
   FStoreFileName:=StoreFileName;
 end;
 
 constructor TJSONStore.Create(jsRoot: TJSONObject);
 begin
-  FOwned:=True;
+  FStoreSource:=TStoreSource.Owned;
   FObject:=jsRoot;
 end;
 
 destructor TJSONStore.Destroy;
 begin
-  FreeStore;
+  Flush;
+  if FStoreSource<>TStoreSource.Owned then
+    FreeAndNil(FObject);
 end;
 
 procedure TJSONStore.CreateStore;
 begin
-  if not Assigned(FObject) then
+
+  if FStoreSource=TStoreSource.None then
   begin
+
     if FileExists(FStoreFileName) then
+    begin
+
       FObject:=TJSONObject.ParseJSONValue(TFile.ReadAllText(FStoreFileName)) as TJSONObject;
+
+      if Assigned(FObject) then
+        FStoreSource:=TStoreSource.ExistingFile
+      else
+        FStoreSource:=TStoreSource.BadFile;
+
+    end else
+      FStoreSource:=TStoreSource.NewFile;
+
     if not Assigned(FObject) then
       FObject:=TJSONObject.Create;
+
+    if FStoreSource=TStoreSource.BadFile then
+      raise EJSONException.Create('json format error (fix or delete the file): '+FStoreFileName);
+
   end;
+
 end;
 
 procedure TJSONStore.Flush;
 begin
-  if Assigned(FObject) and not FOwned then
+  if FStoreSource in [TStoreSource.NewFile,TStoreSource.ExistingFile] then
     TFile.WriteAllText(FStoreFileName,ToJSON(FObject,True),TEncoding.ANSI);
-end;
-
-procedure TJSONStore.FreeStore;
-begin
-  Flush;
-  if not FOwned then FreeAndNil(FObject);
-end;
-
-function AddPair(jsObject: TJSONObject; const Name: string): TJSONObject;
-begin
-  if not jsObject.TryGetValue(Name,Result) then
-  begin
-    Result:=TJSONObject.Create;
-    jsObject.AddPair(Name,Result);
-  end;
-end;
-
-function TJSONStore.ForceObject(const Path: string; jsRoot: TJSONObject;
-  Created: Boolean): TJSONObject;
-var I: Integer;
-begin
-  if not jsRoot.TryGetValue(Path,Result) then
-  if Created then
-  begin
-    I:=Path.IndexOf('.');
-    if I=-1 then
-      Result:=AddPair(jsRoot,Path)
-    else
-      Result:=ForceObject(Path.Substring(I+1),AddPair(jsRoot,Path.Substring(0,I)),True);
-  end else
-    Result:=nil;
-end;
-
-function TJSONStore.TryGetObject(jsRoot: TJSONObject; const Name: string;
-  out jsObject: TJSONObject; out PairName: string; Created: Boolean): Boolean;
-var I: Integer;
-begin
-  I:=Name.LastIndexOf('.');
-  if I=-1 then
-  begin
-    jsObject:=jsRoot;
-    PairName:=Name;
-    Result:=True;
-  end else begin
-    jsObject:=ForceObject(Name.Substring(0,I),jsRoot,Created);
-    PairName:=Name.Substring(I+1);
-    Result:=Assigned(jsObject);
-  end;
-end;
-
-procedure TJSONStore.SetValue(jsRoot: TJSONObject; const Name: string; jsValue: TJSONValue);
-var jsObject: TJSONObject; PairName: string; jsPair: TJSONPair;
-begin
-  if TryGetObject(jsRoot,Name,jsObject,PairName,True) then
-  begin
-    for jsPair in jsObject do
-    if jsPair.JsonString.Value=PairName then
-    begin
-      jsPair.JsonValue:=jsValue;
-      Exit;
-    end;
-    jsObject.AddPair(PairName,jsValue);
-  end;
 end;
 
 function TJSONStore.GetValue<T>(jsRoot: TJSONObject; const Name: string; out Value: T): Boolean;
 var jsObject: TJSONObject; PairName: string;
 begin
   Result:=
-    TryGetObject(jsRoot,Name,jsObject,PairName,False) and
+    JSONTryGetObject(jsRoot,Name,jsObject,PairName,False) and
     jsObject.TryGetValue(PairName,Value);
 end;
 
@@ -180,14 +112,14 @@ procedure TJSONStore.Remove(const Name: string);
 var jsObject: TJSONObject; PairName: string;
 begin
   CreateStore;
-  if TryGetObject(FObject,Name,jsObject,PairName,False) then
+  if JSONTryGetObject(FObject,Name,jsObject,PairName,False) then
     jsObject.RemovePair(PairName).Free;
 end;
 
 procedure TJSONStore.WriteString(const Name: string; const Value: string);
 begin
   CreateStore;
-  SetValue(FObject,Name,TJSONString.Create(Value));
+  JSONSetValue(FObject,Name,TJSONString.Create(Value));
 end;
 
 function TJSONStore.ReadString(const Name: string; const DefaultValue: string=''): string;
@@ -202,7 +134,7 @@ end;
 procedure TJSONStore.WriteInteger(const Name: string; Value: Integer);
 begin
   CreateStore;
-  SetValue(FObject,Name,TJSONNumber.Create(Value));
+  JSONSetValue(FObject,Name,TJSONNumber.Create(Value));
 end;
 
 function TJSONStore.ReadInteger(const Name: string; DefaultValue: Integer=0): Integer;
@@ -217,7 +149,7 @@ end;
 procedure TJSONStore.WriteDouble(const Name: string; Value: Double);
 begin
   CreateStore;
-  SetValue(FObject,Name,TJSONNumber.Create(Value));
+  JSONSetValue(FObject,Name,TJSONNumber.Create(Value));
 end;
 
 function TJSONStore.ReadDouble(const Name: string; DefaultValue: Double=0): Double;
@@ -242,12 +174,9 @@ begin
 end;
 
 procedure TJSONStore.WriteStrings(const Name: string; Strings: TStrings);
-var jsArray: TJSONArray; S: string;
 begin
   CreateStore;
-  jsArray:=TJSONArray.Create;
-  for S in Strings do jsArray.Add(S);
-  SetValue(FObject,Name,jsArray);
+  JSONSetValue(FObject,Name,JSONStringsToArray(Strings));
 end;
 
 procedure TJSONStore.ReadStrings(const Name: string; Strings: TStrings);
@@ -262,14 +191,10 @@ procedure TJSONStore.WriteRect(const Name: string; const Rect: TRect);
 var jsObject: TJSONObject; PairName: string; jsPair: TJSONPair;
 begin
   CreateStore;
-  if TryGetObject(FObject,Name+'.',jsObject,PairName,True) then
-  begin
-    SetValue(jsObject,'left',TJSONNumber.Create(Rect.Left));
-    SetValue(jsObject,'top',TJSONNumber.Create(Rect.Top));
-    SetValue(jsObject,'right',TJSONNumber.Create(Rect.Right));
-    SetValue(jsObject,'bottom',TJSONNumber.Create(Rect.Bottom));
-  end else
-    SetValue(FObject,Name,RectToJSON(Rect));
+  if JSONTryGetObject(FObject,Name+'.',jsObject,PairName,True) then
+    JSONSetRect(jsObject,Rect)
+  else
+    JSONSetValue(FObject,Name,JSONRectToObject(Rect));
 end;
 
 function TJSONStore.ReadRect(const Name: string; const DefaultRect: TRect): TRect;
@@ -277,13 +202,13 @@ var jsRect: TJSONObject;
 begin
   CreateStore;
   Result:=DefaultRect;
-  if GetValue(FObject,Name,jsRect) then Result:=JSONToRect(jsRect,Result);
+  if GetValue(FObject,Name,jsRect) then Result:=JSONObjectToRect(jsRect,Result);
 end;
 
 procedure TJSONStore.WriteJSON(const Name: string; jsValue: TJSONValue);
 begin
   CreateStore;
-  SetValue(FObject,Name,jsValue);
+  JSONSetValue(FObject,Name,jsValue);
 end;
 
 function TJSONStore.ReadJSON(const Name: string): TJSONValue;

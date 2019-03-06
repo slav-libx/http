@@ -11,7 +11,7 @@ uses
   Lib.HTTPHeaders;
 
 type
-  TContent = class
+  TContent = class abstract
   protected type
     TState = (stNone,stHeader,stContentLength,stChunked,stUnknownLength);
   private

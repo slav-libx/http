@@ -26,7 +26,8 @@ uses
   Lib.HTTPConsts,
   Lib.HTTPClient,
   Lib.HTTPContent,
-  Form.Request, Frame.Communication;
+  Form.Request,
+  Frame.Communication;
 
 type
   TForm2 = class(TForm)
@@ -78,9 +79,18 @@ implementation
 
 procedure TForm2.FormCreate(Sender: TObject);
 begin
+
+  Edit1.Text:='';
+  Edit3.Text:='';
+  Edit2.Text:='10';
+  CheckBox1.Checked:=False;
+  ListBox1.Items.Clear;
+
   FStore:=TJSONStore.Create(ExtractFilePath(ParamStr(0))+'client-store.json');
   StoreRead;
+
   CommunicationFrame.Reset;
+
 end;
 
 procedure TForm2.FormDestroy(Sender: TObject);
@@ -92,12 +102,17 @@ end;
 procedure TForm2.StoreRead;
 begin
 
-  BoundsRect:=FStore.ReadRect('form.bounds',BoundsRect);
-  Edit1.Text:=FStore.ReadString('url-edit');
-  Edit3.Text:=FStore.ReadString('local-storage','');
-  Edit2.Text:=FStore.ReadInteger('keep-alive.timeout',10).ToString;
-  CheckBox1.Checked:=FStore.ReadBool('keep-alive.enabled',False);
-  FStore.ReadStrings('urls',ListBox1.Items);
+  try
+    BoundsRect:=FStore.ReadRect('form.bounds',BoundsRect);
+    Edit1.Text:=FStore.ReadString('url-edit');
+    Edit3.Text:=FStore.ReadString('local-storage','');
+    Edit2.Text:=FStore.ReadInteger('keep-alive.timeout',10).ToString;
+    CheckBox1.Checked:=FStore.ReadBool('keep-alive.enabled',False);
+    FStore.ReadStrings('urls',ListBox1.Items);
+  except
+    on E: EJSONException do ApplicationShowException(E);
+    else raise;
+  end;
 
 end;
 
@@ -212,6 +227,7 @@ begin
 
   CommunicationFrame.SetResponse(C.Response);
 
+  if Edit3.Text<>'' then
   if Length(C.Response.Content)>0 then
   begin
     ContentFileName:=ChangeFilePath(C.Response.LocalResource,Edit3.Text);
