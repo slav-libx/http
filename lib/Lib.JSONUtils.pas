@@ -1,4 +1,4 @@
-unit Lib.JSON.Utils;
+unit Lib.JSONUtils;
 
 interface
 
@@ -136,7 +136,8 @@ begin
     if jsPair.JsonString.Value=PairName then
     begin
       if Assigned(jsValue) then
-        jsPair.JsonValue:=jsValue
+        JSONSetPairValue(jsPair,jsValue)
+//        jsPair.JsonValue:=jsValue
       else
         JSONClearPairValue(jsPair);
       Exit;

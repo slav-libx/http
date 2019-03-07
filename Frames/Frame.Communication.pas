@@ -17,7 +17,7 @@ uses
   Vcl.ExtCtrls,
   Vcl.StdCtrls,
   Vcl.Buttons,
-  Lib.JSON.Format,
+  Lib.JSONFormat,
   Lib.VCL.HTTPGraphic,
   Lib.HTTPConsts,
   Lib.HTTPUtils,

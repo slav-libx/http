@@ -22,7 +22,7 @@ uses
   Vcl.ExtCtrls,
   Vcl.Samples.Gauges,
   Vcl.Buttons,
-  Lib.JSON.Store,
+  Lib.JSONStore,
   Lib.HTTPConsts,
   Lib.HTTPClient,
   Lib.HTTPContent,
