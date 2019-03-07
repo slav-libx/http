@@ -127,24 +127,30 @@ begin
   end;
 end;
 
+function JSONTryGetPair(jsObject: TJSONObject; const PairName: string; out jsObjectPair: TJSONPair): Boolean;
+var jsPair: TJSONPair;
+begin
+  Result:=False;
+  for jsPair in jsObject do
+  if jsPair.JsonString.Value=PairName then
+  begin
+    jsObjectPair:=jsPair;
+    Exit(True);
+  end;
+end;
+
 procedure JSONSetValue(jsRoot: TJSONObject; const Name: string; jsValue: TJSONValue);
 var jsObject: TJSONObject; PairName: string; jsPair: TJSONPair;
 begin
   if JSONTryGetObject(jsRoot,Name,jsObject,PairName,Assigned(jsValue)) then
-  begin
-    for jsPair in jsObject do
-    if jsPair.JsonString.Value=PairName then
-    begin
-      if Assigned(jsValue) then
-        JSONSetPairValue(jsPair,jsValue)
-//        jsPair.JsonValue:=jsValue
-      else
-        JSONClearPairValue(jsPair);
-      Exit;
-    end;
+  if JSONTryGetPair(jsObject,PairName,jsPair) then
+    if Assigned(jsValue) then
+      JSONSetPairValue(jsPair,jsValue)
+    else
+      JSONClearPairValue(jsPair)
+  else
     if Assigned(jsValue) then
       jsObject.AddPair(PairName,jsValue);
-  end;
 end;
 
 end.

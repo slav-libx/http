@@ -22,8 +22,9 @@ uses
   Lib.HTTPServer,
   Lib.HTTPServer.StaticFiles,
   Lib.HTTPServer.WebApi,
-  Lib.JSON.Format,
-  Lib.JSON.Store, Frame.Communication;
+  Lib.JSONFormat,
+  Lib.JSONStore,
+  Frame.Communication;
 
 type
   TForm3 = class(TForm)

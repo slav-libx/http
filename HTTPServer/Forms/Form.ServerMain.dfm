@@ -110,7 +110,6 @@ object Form3: TForm3
       'resources=D:\RP5Scenarios\Resources')
     ScrollBars = ssVertical
     TabOrder = 4
-    ExplicitWidth = 513
   end
   object Edit4: TEdit
     Left = 178
