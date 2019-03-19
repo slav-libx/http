@@ -99,6 +99,7 @@ end;
 
 procedure THTTPServerClient.DoTimeout(Code: Integer);
 begin
+  inherited;
   Free;
 end;
 

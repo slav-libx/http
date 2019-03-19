@@ -17,6 +17,7 @@ uses
   Vcl.StdCtrls,
   Vcl.Buttons,
   Vcl.ExtCtrls,
+  Lib.HTTPTypes,
   Lib.HTTPConsts,
   Lib.HTTPContent,
   Lib.HTTPServer,
@@ -27,30 +28,31 @@ uses
   Frame.Communication;
 
 type
-  TForm3 = class(TForm)
-    Button1: TButton;
-    Edit2: TEdit;
-    Button2: TButton;
-    Label3: TLabel;
-    Edit1: TEdit;
-    Label4: TLabel;
-    Edit3: TEdit;
-    Label5: TLabel;
-    Memo2: TMemo;
-    Edit4: TEdit;
-    Label2: TLabel;
-    CheckBox1: TCheckBox;
+  TServerMainForm = class(TForm,IHTTPMonitor)
+    StartServerButton: TButton;
+    PortEdit: TEdit;
+    CloseConnectionsButton: TButton;
+    HostLabel: TLabel;
+    HostEdit: TEdit;
+    HomeLabel: TLabel;
+    HomeEdit: TEdit;
+    AliasesLabel: TLabel;
+    AliasesMemo: TMemo;
+    KeepAliveTimeoutEdit: TEdit;
+    ResultLabel: TLabel;
+    KeepAliveCheckBox: TCheckBox;
     CommunicationFrame: TCommunicationFrame;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure StartServerButtonClick(Sender: TObject);
+    procedure CloseConnectionsButtonClick(Sender: TObject);
   private
     FStore: TJSONStore;
     FCount: Integer;
     FServer: THTTPServer;
     FConnections: TList;
     FWebApi: IMiddleware;
+    procedure DoMessage(const Text: string);
     procedure OnAcceptClient(Sender: TObject);
     procedure OnDestroyClient(Sender: TObject);
     procedure OnRequest(Sender: TObject);
@@ -63,13 +65,13 @@ type
   end;
 
 var
-  Form3: TForm3;
+  ServerMainForm: TServerMainForm;
 
 implementation
 
 {$R *.dfm}
 
-procedure TForm3.FormCreate(Sender: TObject);
+procedure TServerMainForm.FormCreate(Sender: TObject);
 begin
 
   FServer:=nil;
@@ -77,17 +79,17 @@ begin
 
   Caption:='HTTP server ['+GetEnvironmentVariable('ComputerName')+']';
 
-  Memo2.Clear;
+  AliasesMemo.Clear;
 
   FStore:=TJSONStore.Create(ExtractFilePath(ParamStr(0))+'serv-store.json');
 
   BoundsRect:=FStore.ReadRect('form.bounds',BoundsRect);
-  Edit1.Text:=FStore.ReadString('host');
-  Edit2.Text:=FStore.ReadInteger('port',80).ToString;
-  Edit3.Text:=FStore.ReadString('home',ExtractFilePath(ParamStr(0))+'Home');
-  Edit4.Text:=FStore.ReadInteger('keep-alive.timeout',10).ToString;
-  CheckBox1.Checked:=FStore.ReadBool('keep-alive.enabled',False);
-  FStore.ReadStrings('aliases',Memo2.Lines);
+  HostEdit.Text:=FStore.ReadString('host');
+  PortEdit.Text:=FStore.ReadInteger('port',80).ToString;
+  HomeEdit.Text:=FStore.ReadString('home',ExtractFilePath(ParamStr(0))+'Home');
+  KeepAliveTimeoutEdit.Text:=FStore.ReadInteger('keep-alive.timeout',10).ToString;
+  KeepAliveCheckBox.Checked:=FStore.ReadBool('keep-alive.enabled',False);
+  FStore.ReadStrings('aliases',AliasesMemo.Lines);
 
   CommunicationFrame.Reset;
   CommunicationFrame.AutoShowResponseContent:=False;
@@ -98,17 +100,17 @@ begin
 
 end;
 
-procedure TForm3.FormDestroy(Sender: TObject);
+procedure TServerMainForm.FormDestroy(Sender: TObject);
 begin
 
   if WindowState=TWindowState.wsNormal then
     FStore.WriteRect('form.bounds',BoundsRect);
-  FStore.WriteString('host',Edit1.Text);
-  FStore.WriteInteger('port',StrToIntDef(Edit2.Text,80));
-  FStore.WriteString('home',Edit3.Text);
-  FStore.WriteInteger('keep-alive.timeout',StrToIntDef(Edit4.Text,10));
-  FStore.WriteBool('keep-alive.enabled',CheckBox1.Checked);
-  FStore.WriteStrings('aliases',Memo2.Lines);
+  FStore.WriteString('host',HostEdit.Text);
+  FStore.WriteInteger('port',StrToIntDef(PortEdit.Text,80));
+  FStore.WriteString('home',HomeEdit.Text);
+  FStore.WriteInteger('keep-alive.timeout',StrToIntDef(KeepAliveTimeoutEdit.Text,10));
+  FStore.WriteBool('keep-alive.enabled',KeepAliveCheckBox.Checked);
+  FStore.WriteStrings('aliases',AliasesMemo.Lines);
 
   FStore.Free;
   FServer.Free;
@@ -119,14 +121,14 @@ begin
 
 end;
 
-procedure TForm3.StartStopServer;
+procedure TServerMainForm.StartStopServer;
 begin
 
   if Assigned(FServer) then
   begin
 
     FreeAndNil(FServer);
-    CommunicationFrame.ToLog('Server stoped'+CRLF);
+    DoMessage('Server stoped');
     SetServerControls;
 
   end else begin
@@ -139,8 +141,8 @@ begin
     FServer:=THTTPServer.Create;
     try
       FServer.OnAccept:=OnAcceptClient;
-      FServer.Start(Edit1.Text,StrToInt(Edit2.Text));
-      CommunicationFrame.ToLog('Server started'+CRLF);
+      FServer.Start(HostEdit.Text,StrToInt(PortEdit.Text));
+      DoMessage('Server started');
       SetServerControls;
     except
       FreeAndNil(FServer);
@@ -151,12 +153,12 @@ begin
 
 end;
 
-procedure TForm3.CloseClients;
+procedure TServerMainForm.CloseClients;
 begin
   while FConnections.Count>0 do TObject(FConnections.Last).Free;
 end;
 
-procedure TForm3.SetServerControls;
+procedure TServerMainForm.SetServerControls;
 var
   ServerStarted: Boolean;
   ClientsCount: Integer;
@@ -166,61 +168,69 @@ begin
 
   ServerStarted:=Assigned(FServer);
 
-  Button1.Caption:=IfThen(ServerStarted,'Stop','Start');
-  Button2.Enabled:=ClientsCount>0;
-  Edit1.Enabled:=not ServerStarted;
-  Edit2.Enabled:=not ServerStarted;
-  Label2.Caption:=' '+ClientsCount.ToString+' ';
+  StartServerButton.Caption:=IfThen(ServerStarted,'Stop','Start');
+  CloseConnectionsButton.Enabled:=ClientsCount>0;
+  HostEdit.Enabled:=not ServerStarted;
+  PortEdit.Enabled:=not ServerStarted;
+  ResultLabel.Caption:=' '+ClientsCount.ToString+' ';
 
 end;
 
-procedure TForm3.OnRequest(Sender: TObject);
+procedure TServerMainForm.DoMessage(const Text: string);
+begin
+  CommunicationFrame.ToLog(Text+CRLF);
+end;
+
+procedure TServerMainForm.OnRequest(Sender: TObject);
 begin
   CommunicationFrame.SetRequest(THTTPServerClient(Sender).Request);
 end;
 
-procedure TForm3.OnResponse(Sender: TObject);
+procedure TServerMainForm.OnResponse(Sender: TObject);
 begin
   CommunicationFrame.SetResponse(THTTPServerClient(Sender).Response);
 end;
 
-procedure TForm3.SetMiddlewares(Client: THTTPServerClient);
+procedure TServerMainForm.SetMiddlewares(Client: THTTPServerClient);
 begin
   Client.Use(FWebApi);
-  Client.Use(TStaticFiles.Create(Edit3.Text,Memo2.Lines));
+  Client.Use(TStaticFiles.Create(HomeEdit.Text,AliasesMemo.Lines));
 end;
 
-procedure TForm3.OnAcceptClient(Sender: TObject);
+procedure TServerMainForm.OnAcceptClient(Sender: TObject);
 var C: THTTPServerClient;
 begin
 
-  C:=THTTPServerClient.CreateOn(FServer.AcceptClient);
+  C:=THTTPServerClient.Create;
 
-  C.KeepAliveTimeout:=StrToIntDef(Edit4.Text,10);
-  C.KeepAlive:=CheckBox1.Checked;
+  C.Monitor:=Self;
+  C.KeepAliveTimeout:=StrToIntDef(KeepAliveTimeoutEdit.Text,10);
+  C.KeepAlive:=KeepAliveCheckBox.Checked;
   C.OnRequest:=OnRequest;
   C.OnResponse:=OnResponse;
   C.OnDestroy:=OnDestroyClient;
 
   SetMiddlewares(C);
 
+  C.AcceptOn(FServer.AcceptClient);
+
   FConnections.Add(C);
   SetServerControls;
 
 end;
 
-procedure TForm3.OnDestroyClient(Sender: TObject);
+procedure TServerMainForm.OnDestroyClient(Sender: TObject);
 begin
   FConnections.Remove(Sender);
   SetServerControls;
 end;
 
-procedure TForm3.Button1Click(Sender: TObject);
+procedure TServerMainForm.StartServerButtonClick(Sender: TObject);
 begin
   StartStopServer;
 end;
 
-procedure TForm3.Button2Click(Sender: TObject);
+procedure TServerMainForm.CloseConnectionsButtonClick(Sender: TObject);
 begin
   CloseClients;
 end;

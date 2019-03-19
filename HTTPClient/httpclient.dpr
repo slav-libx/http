@@ -5,7 +5,8 @@ uses
   Frame.Communication in '..\Frames\Frame.Communication.pas' {CommunicationFrame: TFrame},
   Lib.HeaderValues in 'Units\Lib.HeaderValues.pas',
   Form.ClientMain in 'Forms\Form.ClientMain.pas' {Form2},
-  Form.Request in 'Forms\Form.Request.pas' {RequestForm};
+  Form.Request in 'Forms\Form.Request.pas' {RequestForm},
+  Lib.HTTPTypes in '..\lib\Lib.HTTPTypes.pas';
 
 {$R *.res}
 

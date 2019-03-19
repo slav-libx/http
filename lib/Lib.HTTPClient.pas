@@ -22,17 +22,13 @@ type
     FOnRequest: TNotifyEvent;
     FOnResponse: TNotifyEvent;
     FOnIdle: TNotifyEvent;
-    FOnMessage: TNotifyEvent;
-    FMessage: string;
  protected
     procedure DoExcept(Code: Integer); override;
     procedure DoTimeout(Code: Integer); override;
-    procedure DoOpen; override;
     procedure DoClose; override;
     procedure DoRead; override;
     procedure DoReadComplete; override;
-    procedure DoMessage(const TextMessage: string);
-    procedure DoConnectionClose;
+    procedure DoConnectionClose; override;
     procedure DoRequest;
     procedure DoNextRequestGet;
   public
@@ -43,10 +39,8 @@ type
     property OnRequest: TNotifyEvent read FOnRequest write FOnRequest;
     property OnResource: TNotifyEvent read FOnResource write FOnResource;
     property OnResponse: TNotifyEvent read FOnResponse write FOnResponse;
-    property OnMessage: TNotifyEvent read FOnMessage write FOnMessage;
     property OnIdle: TNotifyEvent read FOnIdle write FOnIdle;
     property OnDestroy;
-    property Message: string read FMessage;
   end;
 
 implementation
@@ -60,38 +54,26 @@ end;
 
 destructor THTTPClient.Destroy;
 begin
-  DoMessage(ToString+' destroy');
   inherited;
 end;
 
 procedure THTTPClient.DoExcept(Code: Integer);
 begin
+  inherited;
   FActive:=False;
   FHost:='';
-  inherited DoExcept(Code);
 end;
 
 procedure THTTPClient.DoTimeout(Code: Integer);
 begin
-  case Code of
-  TIMEOUT_KEEPALIVE: DoMessage(ToString+' keepalive-timeout');
-  TIMEOUT_READ: DoMessage(ToString+' read-timeout');
-  else DoMessage(ToString+' timeout');
-  end;
-  DoClose;
-end;
-
-procedure THTTPClient.DoOpen;
-begin
-  DoMessage(ToString+' open');
   inherited;
+  DoClose;
 end;
 
 procedure THTTPClient.DoConnectionClose;
 begin
-  if FSocket>0 then DoMessage(ToString+' close');
+  inherited;
   FHost:='';
-  Close;
 end;
 
 procedure THTTPClient.DoClose;
@@ -141,12 +123,6 @@ begin
 
   DoNextRequestGet;
 
-end;
-
-procedure THTTPClient.DoMessage(const TextMessage: string);
-begin
-  FMessage:=TextMessage;
-  if Assigned(FOnMessage) then FOnMessage(Self);
 end;
 
 procedure THTTPClient.DoRequest;

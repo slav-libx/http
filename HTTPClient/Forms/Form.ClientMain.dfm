@@ -185,5 +185,15 @@ object Form2: TForm2
       ExplicitWidth = 650
       ExplicitHeight = 230
     end
+    inherited PictureScrollBox: TScrollBox
+      Width = 650
+      Height = 230
+      ExplicitWidth = 650
+      ExplicitHeight = 230
+      inherited ContentImage: TImage
+        Width = 626
+        Height = 206
+      end
+    end
   end
 end

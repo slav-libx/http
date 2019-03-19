@@ -11,18 +11,15 @@ uses
   System.IOUtils,
   System.JSON,
   Vcl.Graphics,
-  Vcl.Imaging.JPEG,
-  Vcl.Imaging.GIFImg,
-  Vcl.Imaging.pngimage,
   Vcl.Controls,
   Vcl.Forms,
   Vcl.Dialogs,
   Vcl.ComCtrls,
   Vcl.StdCtrls,
   Vcl.ExtCtrls,
-  Vcl.Samples.Gauges,
   Vcl.Buttons,
   Lib.JSONStore,
+  Lib.HTTPTypes,
   Lib.HTTPConsts,
   Lib.HTTPClient,
   Lib.HTTPContent,
@@ -30,7 +27,7 @@ uses
   Frame.Communication;
 
 type
-  TForm2 = class(TForm)
+  TForm2 = class(TForm,IHTTPMonitor)
     ListBox1: TListBox;
     Edit1: TEdit;
     Button1: TButton;
@@ -60,13 +57,13 @@ type
     procedure StoreRead;
     procedure StoreWrite;
     procedure CreateClient;
+    procedure DoMessage(const Text: string);
     procedure OnClientClose(Sender: TObject);
     procedure OnClientRequest(Sender: TObject);
     procedure OnClientResponse(Sender: TObject);
-    procedure OnClientMessage(Sender: TObject);
     procedure OnClientResource(Sender: TObject);
     procedure OnIdle(Sender: TObject);
-    procedure OnClientException(Sender: TObject);
+//    procedure OnClientException(Sender: TObject);
   public
   end;
 
@@ -199,13 +196,13 @@ begin
   begin
 
     FHTTPClient:=THTTPClient.Create;
+    FHTTPClient.Monitor:=Self;
     FHTTPClient.OnRequest:=OnClientRequest;
     FHTTPClient.OnResponse:=OnClientResponse;
-    FHTTPClient.OnMessage:=OnClientMessage;
     FHTTPClient.OnResource:=OnClientResource;
     FHTTPClient.OnClose:=OnClientClose;
     FHTTPClient.OnIdle:=OnIdle;
-    FHTTPClient.OnException:=OnClientException;
+//    FHTTPClient.OnException:=OnClientException;
 
   end;
 
@@ -245,11 +242,9 @@ begin
 
 end;
 
-procedure TForm2.OnClientMessage(Sender: TObject);
-var C: THTTPClient;
+procedure TForm2.DoMessage(const Text: string);
 begin
-  C:=THTTPClient(Sender);
-  CommunicationFrame.ToLog(C.Message+CRLF);
+  CommunicationFrame.ToLog(Text+CRLF);
 end;
 
 procedure TForm2.OnClientResource(Sender: TObject);
@@ -266,11 +261,11 @@ procedure TForm2.OnClientClose(Sender: TObject);
 begin
 end;
 
-procedure TForm2.OnClientException(Sender: TObject);
-var C: THTTPClient;
-begin
-  C:=THTTPClient(Sender);
-  CommunicationFrame.ToLog(C.ExceptionCode.ToString+' '+C.ExceptionMessage+CRLF);
-end;
+//procedure TForm2.OnClientException(Sender: TObject);
+//var C: THTTPClient;
+//begin
+//  C:=THTTPClient(Sender);
+//  CommunicationFrame.ToLog(C.ExceptionCode.ToString+' '+C.ExceptionMessage+CRLF);
+//end;
 
 end.

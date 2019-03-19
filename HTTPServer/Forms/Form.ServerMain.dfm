@@ -1,8 +1,8 @@
-object Form3: TForm3
+object ServerMainForm: TServerMainForm
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu, biMinimize]
-  Caption = 'Form3'
+  Caption = 'ServerMainForm'
   ClientHeight = 603
   ClientWidth = 853
   Color = clBtnFace
@@ -23,34 +23,34 @@ object Form3: TForm3
     603)
   PixelsPerInch = 96
   TextHeight = 13
-  object Label3: TLabel
+  object HostLabel: TLabel
     Left = 14
     Top = 18
     Width = 22
     Height = 13
     Caption = 'Host'
   end
-  object Label4: TLabel
+  object HomeLabel: TLabel
     Left = 14
     Top = 50
     Width = 27
     Height = 13
     Caption = 'Home'
   end
-  object Label5: TLabel
+  object AliasesLabel: TLabel
     Left = 14
     Top = 81
     Width = 33
     Height = 13
     Caption = 'Aliases'
   end
-  object Label2: TLabel
+  object ResultLabel: TLabel
     Left = 603
     Top = 152
-    Width = 33
+    Width = 59
     Height = 13
     Anchors = [akTop, akRight]
-    Caption = 'Label2'
+    Caption = 'ResultLabel'
     Color = clGreen
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
@@ -60,9 +60,8 @@ object Form3: TForm3
     Font.Quality = fqClearType
     ParentColor = False
     ParentFont = False
-    ExplicitLeft = 327
   end
-  object Button1: TButton
+  object StartServerButton: TButton
     Left = 762
     Top = 146
     Width = 84
@@ -70,10 +69,9 @@ object Form3: TForm3
     Anchors = [akTop, akRight]
     Caption = 'Start'
     TabOrder = 0
-    OnClick = Button1Click
-    ExplicitLeft = 486
+    OnClick = StartServerButtonClick
   end
-  object Edit2: TEdit
+  object PortEdit: TEdit
     Left = 247
     Top = 15
     Width = 31
@@ -81,7 +79,7 @@ object Form3: TForm3
     TabOrder = 1
     Text = '80'
   end
-  object Edit1: TEdit
+  object HostEdit: TEdit
     Left = 56
     Top = 15
     Width = 185
@@ -89,7 +87,7 @@ object Form3: TForm3
     TabOrder = 2
     Text = '124'
   end
-  object Edit3: TEdit
+  object HomeEdit: TEdit
     Left = 56
     Top = 47
     Width = 789
@@ -97,9 +95,8 @@ object Form3: TForm3
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 3
     Text = '124'
-    ExplicitWidth = 513
   end
-  object Memo2: TMemo
+  object AliasesMemo: TMemo
     Left = 56
     Top = 79
     Width = 789
@@ -111,7 +108,7 @@ object Form3: TForm3
     ScrollBars = ssVertical
     TabOrder = 4
   end
-  object Edit4: TEdit
+  object KeepAliveTimeoutEdit: TEdit
     Left = 178
     Top = 148
     Width = 31
@@ -119,7 +116,7 @@ object Form3: TForm3
     TabOrder = 5
     Text = '10'
   end
-  object Button2: TButton
+  object CloseConnectionsButton: TButton
     Left = 634
     Top = 146
     Width = 122
@@ -127,10 +124,9 @@ object Form3: TForm3
     Anchors = [akTop, akRight]
     Caption = 'Close connections'
     TabOrder = 6
-    OnClick = Button2Click
-    ExplicitLeft = 358
+    OnClick = CloseConnectionsButtonClick
   end
-  object CheckBox1: TCheckBox
+  object KeepAliveCheckBox: TCheckBox
     Left = 56
     Top = 151
     Width = 115
@@ -153,30 +149,40 @@ object Form3: TForm3
     inherited TabPanel: TPanel
       Top = 393
       Width = 853
-      ExplicitTop = 230
-      ExplicitWidth = 650
+      ExplicitTop = 393
+      ExplicitWidth = 853
       inherited ClearButton: TButton
         Left = 770
-        ExplicitLeft = 567
+        ExplicitLeft = 770
       end
     end
     inherited LogMemo: TMemo
       Width = 853
       Height = 393
-      ExplicitWidth = 650
-      ExplicitHeight = 230
+      ExplicitWidth = 853
+      ExplicitHeight = 393
     end
     inherited RequestMemo: TMemo
       Width = 853
       Height = 393
-      ExplicitWidth = 650
-      ExplicitHeight = 230
+      ExplicitWidth = 853
+      ExplicitHeight = 393
     end
     inherited ResponseMemo: TMemo
       Width = 853
       Height = 393
-      ExplicitWidth = 650
-      ExplicitHeight = 230
+      ExplicitWidth = 853
+      ExplicitHeight = 393
+    end
+    inherited PictureScrollBox: TScrollBox
+      Width = 853
+      Height = 393
+      ExplicitWidth = 853
+      ExplicitHeight = 393
+      inherited ContentImage: TImage
+        Width = 829
+        Height = 369
+      end
     end
   end
 end

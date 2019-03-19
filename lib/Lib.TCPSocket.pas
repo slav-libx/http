@@ -85,7 +85,7 @@ type
     procedure WriteBuf(var Buffer; Count: Integer);
     procedure Write(B: TBytes);
     constructor Create; override;
-    constructor CreateOn(S: TSocket);
+    procedure AcceptOn(S: TSocket);
   public
     property UseSSL: Boolean read GetUseSSL write SetUseSSL;
     property OnOpen: TNotifyEvent read FOnOpen write FOnOpen;
@@ -295,19 +295,22 @@ begin
   FSSL:=nil;
 end;
 
-constructor TTCPClient.CreateOn(S: TSocket);
+procedure TTCPClient.AcceptOn(S: TSocket);
 begin
-  Create;
-  FForceClose:=False;
   FSocket:=S;
+  FForceClose:=False;
+  DoOpen;
   StartEvents(FD_READ or FD_CLOSE);
 end;
 
 function TTCPClient.ConnectTo(const Host: string; Port: Integer): Boolean;
 var R: Integer; IP: string;
 begin
+
   Result:=False;
+
   FForceClose:=True;
+
   FSocket:=socket(2,1,0);
   IP:=Host;
   if not host_isip(IP) then
@@ -315,7 +318,9 @@ begin
   sock_addr_iptoinaddr(IP,FAdIn.sin_addr);
   FAdIn.sin_family:=2;
   FAdIn.sin_port:=htons(Port);
+
   R:=connect(FSocket,TSockAddr(FAdIn),SizeOf(TSockAddr));
+
   if R<>-1 then
     Result:=True
   else
@@ -328,12 +333,7 @@ begin
     Exit(False);
   end;
 
-  if Result then
-  begin
-    FForceClose:=False;
-    DoOpen;
-    StartEvents(FD_READ or FD_CLOSE);
-  end;
+  if Result then AcceptOn(FSocket);
 
 end;
 
