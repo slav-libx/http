@@ -1,4 +1,4 @@
-object Form2: TForm2
+object ClientMainForm: TClientMainForm
   Left = 0
   Top = 0
   Caption = 'HTTP Client'
@@ -21,14 +21,14 @@ object Form2: TForm2
     591)
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
+  object StorageFilesLabel: TLabel
     Left = 366
     Top = 280
     Width = 38
     Height = 13
     Caption = 'Storage'
   end
-  object ListBox1: TListBox
+  object ResourcesListBox: TListBox
     AlignWithMargins = True
     Left = 0
     Top = 0
@@ -43,9 +43,9 @@ object Form2: TForm2
     ItemHeight = 13
     ParentDoubleBuffered = False
     TabOrder = 0
-    OnMouseUp = ListBox1MouseUp
+    OnMouseUp = ResourcesListBoxMouseUp
   end
-  object Edit1: TEdit
+  object ResourceEdit: TEdit
     AlignWithMargins = True
     Left = 0
     Top = 241
@@ -58,19 +58,19 @@ object Form2: TForm2
     DoubleBuffered = True
     ParentDoubleBuffered = False
     TabOrder = 1
-    Text = 'Edit1'
-    OnKeyDown = Edit1KeyDown
+    Text = 'ResourceEdit'
+    OnKeyDown = ResourceEditKeyDown
   end
-  object Button1: TButton
+  object GetResourceButton: TButton
     Left = 8
     Top = 275
     Width = 65
     Height = 25
     Caption = 'GET'
     TabOrder = 2
-    OnClick = Button1Click
+    OnClick = GetResourceButtonClick
   end
-  object Button2: TButton
+  object AddResourceButton: TButton
     Left = 567
     Top = 239
     Width = 75
@@ -78,9 +78,9 @@ object Form2: TForm2
     Anchors = [akTop, akRight]
     Caption = 'Add'
     TabOrder = 3
-    OnClick = Button2Click
+    OnClick = AddResourceButtonClick
   end
-  object StatusBar1: TStatusBar
+  object StatusBar: TStatusBar
     Left = 0
     Top = 572
     Width = 650
@@ -88,16 +88,16 @@ object Form2: TForm2
     Panels = <>
     SimplePanel = True
   end
-  object Button3: TButton
+  object GetLisResourcesButton: TButton
     Left = 150
     Top = 275
     Width = 65
     Height = 25
     Caption = 'GET All'
     TabOrder = 4
-    OnClick = Button3Click
+    OnClick = GetLisResourcesButtonClick
   end
-  object CheckBox1: TCheckBox
+  object KeepAliveCheckBox: TCheckBox
     Left = 240
     Top = 279
     Width = 81
@@ -107,7 +107,7 @@ object Form2: TForm2
     ParentDoubleBuffered = False
     TabOrder = 5
   end
-  object Edit2: TEdit
+  object KeepAliveTimeoutEdit: TEdit
     Left = 319
     Top = 277
     Width = 34
@@ -117,7 +117,7 @@ object Form2: TForm2
     TabOrder = 6
     Text = '10'
   end
-  object Edit3: TEdit
+  object StorageFilesEdit: TEdit
     Left = 414
     Top = 277
     Width = 228
@@ -128,7 +128,7 @@ object Form2: TForm2
     TabOrder = 7
     Text = 'D:\Public\'
   end
-  object Button5: TButton
+  object RemoveResourceButton: TButton
     Left = 567
     Top = 207
     Width = 75
@@ -136,16 +136,16 @@ object Form2: TForm2
     Anchors = [akTop, akRight]
     Caption = 'Delete'
     TabOrder = 8
-    OnClick = Button5Click
+    OnClick = RemoveResourceButtonClick
   end
-  object Button6: TButton
+  object GetResourceExButton: TButton
     Left = 79
     Top = 275
     Width = 65
     Height = 25
     Caption = 'GET...'
     TabOrder = 9
-    OnClick = Button6Click
+    OnClick = GetResourceExButtonClick
   end
   inline CommunicationFrame: TCommunicationFrame
     Left = 0
@@ -193,6 +193,8 @@ object Form2: TForm2
       inherited ContentImage: TImage
         Width = 626
         Height = 206
+        ExplicitWidth = 626
+        ExplicitHeight = 206
       end
     end
   end

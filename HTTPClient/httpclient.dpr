@@ -4,7 +4,7 @@ uses
   Vcl.Forms,
   Frame.Communication in '..\Frames\Frame.Communication.pas' {CommunicationFrame: TFrame},
   Lib.HeaderValues in 'Units\Lib.HeaderValues.pas',
-  Form.ClientMain in 'Forms\Form.ClientMain.pas' {Form2},
+  Form.ClientMain in 'Forms\Form.ClientMain.pas' {ClientMainForm},
   Form.Request in 'Forms\Form.Request.pas' {RequestForm},
   Lib.HTTPTypes in '..\lib\Lib.HTTPTypes.pas';
 
@@ -12,6 +12,6 @@ uses
 
 begin
   Application.Initialize;
-  Application.CreateForm(TForm2, Form2);
+  Application.CreateForm(TClientMainForm, ClientMainForm);
   Application.Run;
 end.

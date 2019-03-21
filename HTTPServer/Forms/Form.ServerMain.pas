@@ -52,7 +52,7 @@ type
     FServer: THTTPServer;
     FConnections: TList;
     FWebApi: IMiddleware;
-    procedure DoMessage(const Text: string);
+    procedure DoTrace(const Text: string); // IHTTPMonitor.DoTrace()
     procedure OnAcceptClient(Sender: TObject);
     procedure OnDestroyClient(Sender: TObject);
     procedure OnRequest(Sender: TObject);
@@ -128,7 +128,7 @@ begin
   begin
 
     FreeAndNil(FServer);
-    DoMessage('Server stoped');
+    DoTrace('Server stoped');
     SetServerControls;
 
   end else begin
@@ -142,7 +142,7 @@ begin
     try
       FServer.OnAccept:=OnAcceptClient;
       FServer.Start(HostEdit.Text,StrToInt(PortEdit.Text));
-      DoMessage('Server started');
+      DoTrace('Server started');
       SetServerControls;
     except
       FreeAndNil(FServer);
@@ -176,7 +176,7 @@ begin
 
 end;
 
-procedure TServerMainForm.DoMessage(const Text: string);
+procedure TServerMainForm.DoTrace(const Text: string);
 begin
   CommunicationFrame.ToLog(Text+CRLF);
 end;

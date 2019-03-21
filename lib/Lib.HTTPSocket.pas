@@ -33,7 +33,7 @@ type
     procedure DoReadHeader; virtual;
     procedure DoReadContent; virtual;
     procedure DoReadComplete; virtual;
-    procedure DoMessage(const Text: string); virtual;
+    procedure DoTrace(const Text: string); virtual;
     procedure DoExcept(Code: Integer); override;
   public
     constructor Create; override;
@@ -72,7 +72,7 @@ end;
 
 destructor THTTPSocket.Destroy;
 begin
-  DoMessage(ToString+' destroy');
+  DoTrace(ToString+' destroy');
   FRequest.Free;
   FResponse.Free;
   inherited;
@@ -93,22 +93,22 @@ end;
 
 procedure THTTPSocket.DoOpen;
 begin
-  DoMessage(ToString+' open');
+  DoTrace(ToString+' open');
   inherited;
 end;
 
 procedure THTTPSocket.DoConnectionClose;
 begin
-  if FSocket>0 then DoMessage(ToString+' close');
+  if FSocket>0 then DoTrace(ToString+' close');
   Close;
 end;
 
 procedure THTTPSocket.DoTimeout(Code: Integer);
 begin
   case Code of
-  TIMEOUT_KEEPALIVE: DoMessage(ToString+' keepalive-timeout');
-  TIMEOUT_READ: DoMessage(ToString+' read-timeout');
-  else DoMessage(ToString+' timeout');
+  TIMEOUT_KEEPALIVE: DoTrace(ToString+' keepalive-timeout');
+  TIMEOUT_READ: DoTrace(ToString+' read-timeout');
+  else DoTrace(ToString+' timeout');
   end;
 end;
 
@@ -139,16 +139,15 @@ procedure THTTPSocket.DoReadComplete;
 begin
 end;
 
-procedure THTTPSocket.DoMessage(const Text: string);
+procedure THTTPSocket.DoTrace(const Text: string);
 begin
-  if Assigned(FMonitor) then FMonitor.DoMessage(Text);
+  if Assigned(FMonitor) then FMonitor.DoTrace(Text);
 end;
 
 procedure THTTPSocket.DoExcept(Code: Integer);
 begin
   inherited;
-  DoMessage(ExceptionCode.ToString+' '+ExceptionMessage);
+  DoTrace(ExceptionCode.ToString+' '+ExceptionMessage);
 end;
-
 
 end.

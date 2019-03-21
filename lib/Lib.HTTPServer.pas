@@ -90,10 +90,14 @@ begin
 
   FKeepConnection:=KeepAlive and (KeepAliveTimeout>0) and Request.Headers.ConnectionKeepAlive;
 
+  // FKeepConnection used in DoResponse for sending response...
+
   DoResponse;
 
   if FKeepConnection then
   SetKeepAliveTimeout(KeepAliveTimeout);
+
+  // ...and return to DoRead
 
 end;
 

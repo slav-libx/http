@@ -182,6 +182,8 @@ object ServerMainForm: TServerMainForm
       inherited ContentImage: TImage
         Width = 829
         Height = 369
+        ExplicitWidth = 829
+        ExplicitHeight = 369
       end
     end
   end

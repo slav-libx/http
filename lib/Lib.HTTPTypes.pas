@@ -4,7 +4,7 @@ interface
 
 type
   IHTTPMonitor = interface
-    procedure DoMessage(const Text: string);
+    procedure DoTrace(const Text: string);
   end;
 
 implementation
