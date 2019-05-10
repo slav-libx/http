@@ -214,6 +214,9 @@ begin
 
   C.AcceptOn(FServer.AcceptClient);
 
+  CommunicationFrame.ToLog('Remote Host: '+FServer.AcceptRemoteHost+':'+
+    FServer.AcceptRemotePort.ToString+CRLF);
+
   FConnections.Add(C);
   SetServerControls;
 

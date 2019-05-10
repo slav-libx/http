@@ -95,6 +95,8 @@ type
 
   TTCPServer = class(TTCPSocket)
   private
+    FAcceptRemoteHost: string;
+    FAcceptRemotePort: Integer;
     FOnAccept: TNotifyevent;
   protected
     procedure DoEvent(EventCode: Word); override;
@@ -104,6 +106,8 @@ type
     procedure Stop;
     function AcceptClient: TSocket;
   public
+    property AcceptRemoteHost: string read FAcceptRemoteHost;
+    property AcceptRemotePort: Integer read FAcceptRemotePort;
     property OnAccept: TNotifyEvent read FOnAccept write FOnAccept;
   end;
 
@@ -449,7 +453,7 @@ var IP: string;
 begin
   FForceClose:=True;
   FSocket:=socket(2,1,0);
-  FillChar(FAdIn,SizeOf(FAdIn),0);
+  FAdIn:=Default(TSockAddrIn);
   if Host<>'' then begin
     IP:=Host;
     if not host_isip(IP) then
@@ -469,8 +473,15 @@ begin
 end;
 
 function TTCPServer.AcceptClient: TSocket;
+var
+  SockAddr: TSockAddrIn;
+  SockAddrLenght: Integer;
 begin
-  Result:=accept(FSocket,nil,nil);
+  SockAddrLenght:=SizeOf(SockAddr);
+  SockAddr:=Default(TSockAddrIn);
+  Result:=accept(FSocket,@SockAddr,@SockAddrLenght); // accept(FSocket,nil,nil);
+  FAcceptRemoteHost:=inet_ntoa(SockAddr.sin_addr);
+  FAcceptRemotePort:=ntohs(SockAddr.sin_port);
 end;
 
 initialization
