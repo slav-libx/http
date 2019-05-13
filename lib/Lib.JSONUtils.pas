@@ -39,6 +39,16 @@ begin
   end;
 end;
 
+{$IFDEF VER330} // 10.3
+
+procedure JSONSetPairValue(jsPair: TJSONPair; jsValue: TJSONValue);
+begin
+  if Assigned(jsValue) then
+    jsPair.JsonValue:=jsValue;
+end;
+
+{$ELSE} // XE8
+
 procedure JSONSetPairValue(jsPair: TJSONPair; jsValue: TJSONValue);
 begin
   if Assigned(jsValue) then
@@ -47,6 +57,8 @@ begin
     jsPair.JsonValue:=jsValue;
   end;
 end;
+
+{$ENDIF}
 
 procedure JSONClearPairValue(jsPair: TJSONPair);
 begin
