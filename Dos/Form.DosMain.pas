@@ -29,9 +29,11 @@ implementation
 procedure TForm12.Button1Click(Sender: TObject);
 var I: Integer;
 begin
-  for I:=0 to 1000 do
+  for I:=0 to 10000 do
   begin
-    FClient.ConnectTo('localhost',5555);
+  FClient:=TTCPClient.Create;
+//    FClient.ConnectTo('localhost',5555);
+    FClient.ConnectTo('190.2.146.26',5555);
     FClient.WriteString('1111');
   end;
 end;

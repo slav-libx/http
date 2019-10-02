@@ -353,6 +353,7 @@ end;
 
 procedure TTCPClient.DoClose;
 begin
+  Close;
   if Assigned(FOnClose) then FOnClose(Self);
 end;
 
