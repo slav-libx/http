@@ -30,6 +30,8 @@ type
     FEventHandle: HWND;
     FOnDestroy: TNotifyEvent;
     FOnException: TNotifyEvent;
+    FLocalAddress: string;
+    FLocalPort: Integer;
     procedure WndMethod(var Message: TMessage);
     procedure WMTimer(var Message: TWMTimer); message WM_TIMER;
     procedure CMSocketMessage(var Message: TSocketMessage); message CM_SOCKETMESSAGE;
@@ -47,6 +49,7 @@ type
     procedure SetTimeout(Elapsed: Cardinal; Code: Integer);
     procedure Check(R: Integer);
     procedure Close; virtual;
+    procedure UpdateLocal;
     property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
   public
     constructor Create; virtual;
@@ -54,6 +57,8 @@ type
     function ToString: string; override;
     procedure DefaultHandler(var Message); override;
     procedure DeferFree;
+    property LocalAddress: string read FLocalAddress write FLocalAddress;
+    property LocalPort: Integer read FLocalPort write FLocalPort;
     property ExceptionCode: Integer read FExceptionCode;
     property ExceptionMessage: string read FExceptionMessage;
     property OnException: TNotifyEvent read FOnException write FOnException;
@@ -74,10 +79,10 @@ type
     procedure DoRead; virtual;
     procedure DoClose; virtual;
     procedure CheckConnect;
-    procedure Close; override;
   public
 //    function WaitForRead(WaitTime: Integer): Boolean;
     function ConnectTo(const Host: string; Port: Integer): Boolean;
+    procedure Close; override;
     function ReadString(Encoding: TEncoding = nil): string;
     function ReadBuf(var Buffer; Count: Integer): Integer;
     function Read(MaxBuffSize: Integer=10240): TBytes;
@@ -177,6 +182,19 @@ begin
   else
     AddCleanSocket(FSocket);
   FSocket:=0;
+end;
+
+procedure TTCPSocket.UpdateLocal;
+var
+  SockAddrIn: TSockAddrIn;
+  Size: Integer;
+begin
+  Size:=SizeOf(SockAddrIn);
+  if getsockname(FSocket,TSockAddr(SockAddrIn),Size)=0 then
+  begin
+    FLocalAddress:=string(inet_ntoa(SockAddrIn.sin_addr));
+    FLocalPort:=ntohs(SockAddrIn.sin_port);
+  end;
 end;
 
 procedure TTCPSocket.DoExceptCode(Code: Integer);
@@ -304,6 +322,7 @@ begin
   FSocket:=S;
   FForceClose:=False;
   DoOpen;
+  UpdateLocal;
   StartEvents(FD_READ or FD_CLOSE);
 end;
 
@@ -451,7 +470,19 @@ end;
 
 procedure TTCPServer.Start(const Host: string; Port: Integer);
 var IP: string;
+  P: PHostEnt;
+  Buf: array [0..127] of Char;
+  s: string;
 begin
+
+  FLocalAddress:='';
+
+  if gethostname(@Buf,128)=0 then
+  begin
+    P:=gethostbyname(@Buf);
+    if P<>nil then FLocalAddress:=inet_ntoa(PInAddr(p^.h_addr_list^)^);
+  end;
+
   FForceClose:=True;
   FSocket:=socket(2,1,0);
   FAdIn:=Default(TSockAddrIn);
@@ -480,7 +511,7 @@ var
 begin
   SockAddrLenght:=SizeOf(SockAddr);
   SockAddr:=Default(TSockAddrIn);
-  Result:=accept(FSocket,@SockAddr,@SockAddrLenght); // accept(FSocket,nil,nil);
+  Result:=accept(FSocket,@SockAddr,@SockAddrLenght);
   FAcceptRemoteHost:=inet_ntoa(SockAddr.sin_addr);
   FAcceptRemotePort:=ntohs(SockAddr.sin_port);
 end;
