@@ -41,6 +41,7 @@ type
     destructor Destroy; override;
     procedure AddContentText(const Text: string); overload;
     procedure AddContentText(const Text,ContentType: string); overload;
+    procedure AddContentJson(const Text: string);
     procedure AddContentFile(const FileName: string); overload;
     procedure AddContentFile(const FileName,ContentType: string); overload;
     property Headers: THeaders read FHeaders;
@@ -84,6 +85,7 @@ type
     procedure Assign(Source: TContent); override;
     function Compose: string;
     procedure SetResult(Code: Integer; const Text: string);
+    procedure SetResultOK;
     procedure Merge(Request: TRequest);
   end;
 
@@ -144,6 +146,11 @@ begin
   Content:=TEncoding.UTF8.GetBytes(Text);
   FContentType:=ContentType+'; charset=utf-8';
   Description:=Text;
+end;
+
+procedure TContent.AddContentJson(const Text: string);
+begin
+  AddContentText(Text,'application/json');
 end;
 
 procedure TContent.AddContentFile(const FileName: string);
@@ -283,12 +290,10 @@ end;
 procedure TContent.ComposeHeaders;
 begin
 
-  if Length(Content)>0 then
-  begin
-    if FContentType<>'' then
-      Headers.SetValue('Content-Type',FContentType);
-    Headers.SetValue('Content-Length',Length(Content).ToString);
-  end;
+  if (Length(Content)>0) and (FContentType<>'') then
+    Headers.SetValue('Content-Type',FContentType);
+
+  Headers.SetValue('Content-Length',Length(Content).ToString);
 
 end;
 
@@ -383,6 +388,12 @@ procedure TResponse.SetResult(Code: Integer; const Text: string);
 begin
   ResultCode:=Code;
   ResultText:=Text;
+end;
+
+procedure TResponse.SetResultOK;
+begin
+  ResultCode:=HTTPCODE_SUCCESS;
+  ResultText:='OK';
 end;
 
 function TResponse.Compose: string;

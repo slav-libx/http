@@ -126,6 +126,7 @@ begin
     Result:=TNetEncoding.URL.Decode(Resource);
   except
   on E: EConvertError do Exit(Resource);
+  on E: EEncodingError do Exit(Resource);
   else raise;
   end;
 end;

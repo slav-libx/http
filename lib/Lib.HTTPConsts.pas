@@ -9,6 +9,7 @@ const
   CRLF2 = CRLF+CRLF;
   PROTOCOL_HTTP11 = 'HTTP/1.1';
   METHOD_GET = 'GET';
+  METHOD_POST = 'POST';
   SCHEME_HTTP = 'http';
   SCHEME_HTTPS = 'https';
 

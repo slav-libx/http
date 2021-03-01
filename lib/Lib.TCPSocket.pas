@@ -8,34 +8,16 @@ uses
   Winapi.Windows,
   Winapi.Messages,
   Winapi.WinSock2,
-  Lib.CleanSocket,
   Lib.SSL;
-
-const
-  CM_SOCKETMESSAGE = WM_USER + $0001;
-  CM_DEFERFREE = WM_USER + $0002;
 
 type
   TTCPSocket = class
-  private type
-    TSocketMessage = record
-      Msg: Cardinal;
-      Socket: TSocket;
-      SelectEvent: Word;
-      SelectError: Word;
-      Result: Longint;
-    end;
   private
     FForceClose: Boolean;
-    FEventHandle: HWND;
     FOnDestroy: TNotifyEvent;
     FOnException: TNotifyEvent;
     FLocalAddress: string;
     FLocalPort: Integer;
-    procedure WndMethod(var Message: TMessage);
-    procedure WMTimer(var Message: TWMTimer); message WM_TIMER;
-    procedure CMSocketMessage(var Message: TSocketMessage); message CM_SOCKETMESSAGE;
-    procedure CMDeferFree(var Message); message CM_DEFERFREE;
   protected
     FSocket: TSocket;
     FAdIn: TSockAddrIn;
@@ -47,7 +29,7 @@ type
     procedure DoTimeout(Code: Integer); virtual;
     procedure StartEvents(EventCodes: Integer);
     procedure SetTimeout(Elapsed: Cardinal; Code: Integer);
-    procedure Check(R: Integer);
+    function Check(R: Integer): Boolean;
     procedure Close; virtual;
     procedure UpdateLocal;
     property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
@@ -55,8 +37,6 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
     function ToString: string; override;
-    procedure DefaultHandler(var Message); override;
-    procedure DeferFree;
     property LocalAddress: string read FLocalAddress write FLocalAddress;
     property LocalPort: Integer read FLocalPort write FLocalPort;
     property ExceptionCode: Integer read FExceptionCode;
@@ -118,8 +98,311 @@ type
 
 implementation
 
+{ Support socket messages }
+
+const
+  CM_SOCKETMESSAGE = WM_USER + $0001;
+
+type
+  TSocketManager = class
+  strict private type
+    TSocketMessage = record
+      Msg: Cardinal;
+      Socket: TSocket;
+      SelectEvent: Word;
+      SelectError: Word;
+      Result: Longint;
+    end;
+  strict private
+    FEventHandle: HWND;
+    Sockets: TArray<TTCPSocket>;
+    procedure WndMethod(var Message: TMessage);
+    procedure CMSocketMessage(var Message: TSocketMessage); message CM_SOCKETMESSAGE;
+    function IndexOf(TCPSocket: TTCPSocket): Integer; overload;
+    function IndexOf(Socket: TSocket): Integer; overload;
+    function Get(Socket: TSocket): TTCPSocket;
+    function TryGet(Socket: TSocket; out TCPSocket: TTCPSocket): Boolean;
+  strict private type
+    TCleanData = record
+      Socket: TSocket;
+      CloseTime: Longint;
+    end;
+  strict private
+    FCleanTimer: THandle;
+    CleanSockets: TArray<TCleanData>;
+    function GetCleanSocketIndex(Socket: TSocket): Integer;
+    function TryGetCleanSocketIndex(Socket: TSocket; out I: Integer): Boolean;
+    procedure RemoveCleanSocketByIndex(I: Integer);
+    function GetFreeCleanIndex: Integer;
+  private
+    procedure AddCleanSocket(Socket: TSocket);
+    procedure CloseCleanSocket(Socket: TSocket);
+    procedure CloseCleanSockets(CloseTime: Longint);
+  strict private type
+    TTimerEvent = record
+      TimerID: UIntPtr;
+      EventCode: Integer;
+      Socket: TTCPSocket;
+    end;
+  strict private
+    TimerEvents: TArray<TTimerEvent>;
+    procedure RemoveTimerEvent(I: Integer); overload;
+    procedure RemoveTimerEvent(TCPSocket: TTCPSocket; Code: Integer); overload;
+    procedure RemoveTimerEvents(TCPSocket: TTCPSocket);
+    function GetEventIndexOf(TCPSocket: TTCPSocket; Code: Integer): Integer; overload;
+    function GetEventIndexOf(TimerID: UIntPtr): Integer; overload;
+  private
+    procedure SetTimerEvent(TCPSocket: TTCPSocket; Code: Integer; Elapsed: Cardinal);
+    procedure DoEvent(TimerID: UIntPtr);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure DefaultHandler(var Message); override;
+    procedure Add(TCPSocket: TTCPSocket; EventCodes: Integer);
+    procedure Remove(TCPSocket: TTCPSocket; Closed: Boolean);
+  end;
+
 var
+  SocketManager: TSocketManager;
   WSAData: TWSAData;
+
+constructor TSocketManager.Create;
+begin
+  Sockets:=nil;
+  CleanSockets:=nil;
+  FCleanTimer:=0;
+  FEventHandle:=AllocateHWnd(WndMethod);
+end;
+
+destructor TSocketManager.Destroy;
+begin
+  DeallocateHWnd(FEventHandle);
+  CloseCleanSockets(LongInt.MaxValue);
+end;
+
+procedure TSocketManager.DefaultHandler(var Message);
+begin
+  with TMessage(Message) do
+  Result:=CallWindowProc(@DefWindowProc,FEventHandle,Msg,wParam,lParam);
+end;
+
+procedure TSocketManager.WndMethod(var Message: TMessage);
+begin
+  try
+    Dispatch(Message);
+  except
+    if Assigned(ApplicationHandleException) then
+      ApplicationHandleException(Self);
+  end;
+end;
+
+procedure TSocketManager.CMSocketMessage(var Message: TSocketMessage);
+var TCPSocket: TTCPSocket;
+begin
+  if Message.Socket>0 then
+  //if Message.SelectError=0 then
+  if TryGet(Message.Socket,TCPSocket) then
+  begin
+    if Message.SelectEvent=FD_CLOSE then
+      TCPSocket.FForceClose:=True;
+    TCPSocket.DoEvent(Message.SelectEvent);
+  end else
+  if Message.SelectEvent=FD_CLOSE then
+    CloseCleanSocket(Message.Socket);
+end;
+
+function TSocketManager.IndexOf(TCPSocket: TTCPSocket): Integer;
+begin
+  for Result:=0 to High(Sockets) do
+  if Sockets[Result]=TCPSocket then Exit;
+  Result:=-1;
+end;
+
+function TSocketManager.IndexOf(Socket: TSocket): Integer;
+begin
+  for Result:=0 to High(Sockets) do
+  if Sockets[Result].FSocket=Socket then Exit;
+  Result:=-1;
+end;
+
+function TSocketManager.Get(Socket: TSocket): TTCPSocket;
+var I: Integer;
+begin
+  I:=IndexOf(Socket);
+  if I=-1 then
+    Result:=nil
+  else
+    Result:=Sockets[I];
+end;
+
+function TSocketManager.TryGet(Socket: TSocket; out TCPSocket: TTCPSocket): Boolean;
+begin
+  TCPSocket:=Get(Socket);
+  Result:=Assigned(TCPSocket);
+end;
+
+procedure TSocketManager.Add(TCPSocket: TTCPSocket; EventCodes: Integer);
+begin
+  if TCPSocket.Check(WSAAsyncSelect(TCPSocket.FSocket,FEventHandle,CM_SOCKETMESSAGE,EventCodes)) then
+  Sockets:=Sockets+[TCPSocket];
+end;
+
+procedure TSocketManager.Remove(TCPSocket: TTCPSocket; Closed: Boolean);
+begin
+  Delete(Sockets,IndexOf(TCPSocket),1);
+  if not Closed then
+  if WSAAsyncSelect(TCPSocket.FSocket,FEventHandle,0,0)<>-1 then
+    AddCleanSocket(TCPSocket.FSocket);
+  RemoveTimerEvents(TCPSocket);
+end;
+
+function TSocketManager.GetCleanSocketIndex(Socket: TSocket): Integer;
+begin
+  if Socket>0 then
+  for Result:=0 to High(CleanSockets) do
+  if CleanSockets[Result].Socket=Socket then Exit;
+  Result:=-1;
+end;
+
+function TSocketManager.TryGetCleanSocketIndex(Socket: TSocket; out I: Integer): Boolean;
+begin
+  I:=GetCleanSocketIndex(Socket);
+  Result:=I<>-1;
+end;
+
+procedure TSocketManager.RemoveCleanSocketByIndex(I: Integer);
+var C: TSocket;
+begin
+  C:=CleanSockets[I].Socket;
+  CleanSockets[I].Socket:=0;
+  if C>0 then
+  if closesocket(C)=-1 then
+    raise Exception.Create(SysErrorMessage(WSAGetLastError));
+end;
+
+procedure TSocketManager.CloseCleanSockets(CloseTime: Longint);
+var I: Integer; Clean: Boolean;
+begin
+  Clean:=False;
+  for I:=0 to High(CleanSockets) do
+  if CleanSockets[I].Socket>0 then
+  if CleanSockets[I].CloseTime<CloseTime then
+    RemoveCleanSocketByIndex(I)
+  else
+    Clean:=True;
+  if not Clean then
+  if FCleanTimer>0 then
+  begin
+    KillTimer(0,FCleanTimer);
+    FCleanTimer:=0;
+  end;
+end;
+
+procedure TSocketManager.CloseCleanSocket(Socket: TSocket);
+var I: Integer;
+begin
+  if TryGetCleanSocketIndex(Socket,I) then RemoveCleanSocketByIndex(I);
+end;
+
+function TSocketManager.GetFreeCleanIndex: Integer;
+begin
+  for Result:=0 to High(CleanSockets) do
+  if CleanSockets[Result].Socket=0 then Exit;
+  Result:=Length(CleanSockets);
+  SetLength(CleanSockets,Result+1);
+end;
+
+procedure CleanSocketTimerProc(WND: hwnd; Msg: Longint; idEvent: UINT; dwTime: Longint); stdcall;
+begin
+  SocketManager.CloseCleanSockets(dwTime);
+end;
+
+procedure TSocketManager.AddCleanSocket(Socket: TSocket);
+var I: Integer;
+begin
+  if Socket>0 then
+  begin
+    I:=GetFreeCleanIndex;
+    CleanSockets[I].Socket:=Socket;
+    CleanSockets[I].CloseTime:=TThread.GetTickCount+2000;
+    if FCleanTimer=0 then
+      FCleanTimer:=SetTimer(0,0,2000,@CleanSocketTimerProc);
+  end;
+end;
+
+procedure TSocketManager.DoEvent(TimerID: UIntPtr);
+var I: Integer;
+begin
+  I:=GetEventIndexOf(TimerID);
+  if I<>-1 then
+  try
+    TimerEvents[I].Socket.DoTimeout(TimerEvents[I].EventCode);
+  finally
+    I:=GetEventIndexOf(TimerID);
+    if I<>-1 then RemoveTimerEvent(I);
+  end;
+end;
+
+function TSocketManager.GetEventIndexOf(TCPSocket: TTCPSocket; Code: Integer): Integer;
+begin
+  for Result:=0 to High(TimerEvents) do
+  if (TimerEvents[Result].Socket=TCPSocket) and (TimerEvents[Result].EventCode=Code) then Exit;
+  Result:=-1;
+end;
+
+function TSocketManager.GetEventIndexOf(TimerID: UIntPtr): Integer;
+begin
+  for Result:=0 to High(TimerEvents) do
+  if TimerEvents[Result].TimerID=TimerID then Exit;
+  Result:=-1;
+end;
+
+procedure EventsTimerProc(WND: hwnd; Msg: Longint; idEvent: UINT; dwTime: Longint); stdcall;
+begin
+  SocketManager.DoEvent(idEvent);
+end;
+
+procedure TSocketManager.SetTimerEvent(TCPSocket: TTCPSocket; Code: Integer; Elapsed: Cardinal);
+var Event: TTimerEvent;
+begin
+
+  RemoveTimerEvent(TCPSocket,Code);
+
+  if Elapsed>0 then
+  begin
+    Event.EventCode:=Code;
+    Event.Socket:=TCPSocket;
+    Event.TimerID:=SetTimer(0,0,Elapsed,@EventsTimerProc);
+    TimerEvents:=TimerEvents+[Event];
+  end;
+
+end;
+
+procedure TSocketManager.RemoveTimerEvent(I: Integer);
+begin
+  KillTimer(0,TimerEvents[I].TimerID);
+  Delete(TimerEvents,I,1);
+end;
+
+procedure TSocketManager.RemoveTimerEvent(TCPSocket: TTCPSocket; Code: Integer);
+var I: Integer;
+begin
+  I:=GetEventIndexOf(TCPSocket,Code);
+  if I<>-1 then RemoveTimerEvent(I);
+end;
+
+procedure TSocketManager.RemoveTimerEvents(TCPSocket: TTCPSocket);
+var I: Integer;
+begin
+  I:=0;
+  while I<Length(TimerEvents) do
+  if TimerEvents[I].Socket=TCPSocket then
+    RemoveTimerEvent(I)
+  else
+    Inc(I);
+end;
+
+{ Utilities }
 
 function host_isip(const Host: string): Boolean;
 begin
@@ -157,13 +440,11 @@ end;
 constructor TTCPSocket.Create;
 begin
   FSocket:=0;
-  FEventHandle:=AllocateHWnd(WndMethod);
 end;
 
 destructor TTCPSocket.Destroy;
 begin
   Close;
-  if FEventHandle<>0 then DeallocateHWnd(FEventHandle);
   if Assigned(FOnDestroy) then FOnDestroy(Self);
   inherited;
 end;
@@ -177,10 +458,8 @@ procedure TTCPSocket.Close;
 begin
   if FSocket<1 then Exit;
   shutdown(FSocket,1);
-  if FForceClose then
-    closesocket(FSocket)
-  else
-    AddCleanSocket(FSocket);
+  if FForceClose then closesocket(FSocket);
+  SocketManager.Remove(Self,FForceClose);
   FSocket:=0;
 end;
 
@@ -215,68 +494,20 @@ procedure TTCPSocket.DoTimeout(Code: Integer);
 begin
 end;
 
-procedure TTCPSocket.Check(R: Integer);
+function TTCPSocket.Check(R: Integer): Boolean;
 begin
   if R=-1 then DoExcept(WSAGetLastError);
-end;
-
-procedure TTCPSocket.WndMethod(var Message: TMessage);
-begin
-  try
-    Dispatch(Message);
-  except
-    if Assigned(ApplicationHandleException) then
-      ApplicationHandleException(Self);
-  end;
-end;
-
-procedure TTCPSocket.WMTimer(var Message: TWMTimer);
-begin
-  SetTimeout(0,Message.TimerID);
-  if FSocket>0 then DoTimeout(Message.TimerID);
-end;
-
-procedure TTCPSocket.CMSocketMessage(var Message: TSocketMessage);
-begin
-  if Message.SelectError=0 then
-  if Message.Socket>0 then
-  if Message.Socket=FSocket then
-  begin
-    if Message.SelectEvent=FD_CLOSE then
-      FForceClose:=True;
-    DoEvent(Message.SelectEvent)
-  end else
-  if Message.SelectEvent=FD_CLOSE then
-    CloseCleanSocket(Message.Socket);
-end;
-
-procedure TTCPSocket.CMDeferFree(var Message);
-begin
-  Free;
-end;
-
-procedure TTCPSocket.DeferFree;
-begin
-  if FEventHandle<>0 then PostMessage(FEventHandle,CM_DEFERFREE,0,0);
-end;
-
-procedure TTCPSocket.DefaultHandler(var Message);
-begin
-  if FEventHandle<>0 then with TMessage(Message) do
-  Result:=CallWindowProc(@DefWindowProc,FEventHandle,Msg,wParam,lParam);
+  Result:=R<>-1;
 end;
 
 procedure TTCPSocket.StartEvents(EventCodes: Integer);
 begin
-  Check(WSAAsyncSelect(FSocket,FEventHandle,CM_SOCKETMESSAGE,EventCodes));
+  SocketManager.Add(Self,EventCodes);
 end;
 
 procedure TTCPSocket.SetTimeout(Elapsed: Cardinal; Code: Integer);
 begin
-  if Elapsed=0 then
-    KillTimer(FEventHandle,Code)
-  else
-    SetTimer(FEventHandle,Code,Elapsed,nil);
+  SocketManager.SetTimerEvent(Self,Code,Elapsed);
 end;
 
 { TTCPClient }
@@ -372,7 +603,7 @@ end;
 
 procedure TTCPClient.DoClose;
 begin
-  Close;
+//  Close;
   if Assigned(FOnClose) then FOnClose(Self);
 end;
 
@@ -427,20 +658,34 @@ end;
 procedure TTCPClient.WriteBuf(var Buffer; Count: Integer);
 var
   W: Boolean;
-  I: Integer;
+  I,LE,C: Integer;
 begin
   CheckConnect;
   W:=False;
   I:=0;
+  C:=0;
   while not W do
   begin
     if UseSSL then
       I:=fSSL.send(Buffer,Count)
     else
       I:=send(FSocket,Pointer(Buffer)^,Count,0);
-    W:=(I<>-1) or (WSAGetLastError<>10035);
+    W:=True;
+    LE:=0;
+    if I=-1 then
+    begin
+      LE:=WSAGetLastError;
+      if LE=10035 then
+      begin
+        Inc(C);
+        W:=C>10;// False;
+        Sleep(400);
+      end;
+    end;
+
   end;
-  Check(I);
+  if I=-1 then DoExcept(LE);
+  //Check(I);
 end;
 
 procedure TTCPClient.Write(B: TBytes);
@@ -517,6 +762,13 @@ begin
 end;
 
 initialization
+
+  SocketManager:=TSocketManager.Create;
+
   WSAStartup($202,WSAData);
+
+finalization
+
+  SocketManager.Free;
 
 end.
