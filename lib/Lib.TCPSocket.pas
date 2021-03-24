@@ -71,6 +71,7 @@ type
     procedure Write(B: TBytes);
     constructor Create; override;
     procedure AcceptOn(S: TSocket);
+    function SetKeepAlive(KeepAliveTime: Cardinal=1000; KeepAliveInterval: Cardinal=1000): Boolean;
   public
     property UseSSL: Boolean read GetUseSSL write SetUseSSL;
     property OnOpen: TNotifyEvent read FOnOpen write FOnOpen;
@@ -699,6 +700,27 @@ begin
     Write(TEncoding.Default.GetBytes(S))
   else
     Write(Encoding.GetBytes(S));
+end;
+
+const
+  SIO_KEEPALIVE_VALS=(IOC_IN or IOC_VENDOR or 4);
+
+type
+  tcp_keepalive = record
+    onoff: u_long;
+    keepalivetime: u_long;
+    keepaliveinterval: u_long;
+  end;
+
+function TTCPClient.SetKeepAlive(KeepAliveTime: Cardinal; KeepAliveInterval: Cardinal): Boolean;
+var
+  ka: tcp_keepalive;
+  Bytes: Cardinal;
+begin
+  ka.onoff:=1;
+  ka.keepalivetime:=KeepAliveTime;
+  ka.keepaliveinterval:=KeepAliveInterval;
+  Result:=WSAIoctl(FSocket,SIO_KEEPALIVE_VALS,@ka,SizeOf(ka),nil,0,Bytes,nil,nil)=0;
 end;
 
 { TTCPServer }
