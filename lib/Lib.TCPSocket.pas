@@ -73,6 +73,10 @@ type
     procedure AcceptOn(S: TSocket);
     function SetKeepAlive(KeepAliveTime: Cardinal=1000; KeepAliveInterval: Cardinal=1000): Boolean;
   public
+    CertCAFile: string;
+    CertificateFile: string;
+    PrivateKeyFile: string;
+    KeyPassword: string;
     property UseSSL: Boolean read GetUseSSL write SetUseSSL;
     property OnOpen: TNotifyEvent read FOnOpen write FOnOpen;
     property OnRead: TNotifyEvent read FOnRead write FOnRead;
@@ -551,11 +555,29 @@ end;
 
 procedure TTCPClient.AcceptOn(S: TSocket);
 begin
+
   FSocket:=S;
   FForceClose:=False;
   DoOpen;
   UpdateLocal;
+
+  if UseSSL then
+  begin
+    FSSL.CertCAFile:=CertCAFile;
+    FSSL.CertificateFile:=CertificateFile;
+    FSSL.PrivateKeyFile:=PrivateKeyFile;
+    FSSL.KeyPassword:=KeyPassword;
+    FSSL.Verify:=CertificateFile<>'';
+    if not fSSL.accept(FSocket) then
+    begin
+      DoExcept(fssl.ErrorCode);
+      DoClose;
+      Exit;
+    end;
+  end;
+
   StartEvents(FD_READ or FD_CLOSE);
+
 end;
 
 function TTCPClient.ConnectTo(const Host: string; Port: Integer): Boolean;
@@ -581,14 +603,31 @@ begin
   else
     if WSAGetLastError<>10035 then Check(R);
 
-  if Result and UseSSL then
-  if not fssl.connect(FSocket) then
+  if Result then
   begin
-    DoExcept(fssl.ErrorCode);
-    Exit(False);
-  end;
 
-  if Result then AcceptOn(FSocket);
+    FForceClose:=False;
+    DoOpen;
+    UpdateLocal;
+
+    if UseSSL then
+    begin
+      FSSL.CertCAFile:=CertCAFile;
+      FSSL.CertificateFile:=CertificateFile;
+      FSSL.PrivateKeyFile:=PrivateKeyFile;
+      FSSL.KeyPassword:=KeyPassword;
+      FSSL.Verify:=CertificateFile<>'';
+      if not fssl.connect(FSocket) then
+      begin
+        DoExcept(fssl.ErrorCode);
+        DoClose;
+        Exit(False);
+      end;
+    end;
+
+    StartEvents(FD_READ or FD_CLOSE);
+
+  end;
 
 end;
 
@@ -750,6 +789,7 @@ begin
     if P<>nil then FLocalAddress:=inet_ntoa(PInAddr(p^.h_addr_list^)^);
   end;
 
+  FLocalPort:=Port;
   FForceClose:=True;
   FSocket:=socket(2,1,0);
   FAdIn:=Default(TSockAddrIn);

@@ -42,6 +42,9 @@ type
     ResultLabel: TLabel;
     KeepAliveCheckBox: TCheckBox;
     CommunicationFrame: TCommunicationFrame;
+    SSLPortEdit: TEdit;
+    PortLabel: TLabel;
+    SSLPortLabel: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure StartServerButtonClick(Sender: TObject);
@@ -50,6 +53,7 @@ type
     FStore: TJSONStore;
     FCount: Integer;
     FServer: THTTPServer;
+    FSSLServer: THTTPServer;
     FConnections: TList;
     FWebApi: IMiddleware;
     procedure DoTrace(const Text: string); // IHTTPMonitor.DoTrace()
@@ -60,6 +64,7 @@ type
     procedure SetServerControls;
     procedure SetMiddlewares(Client: THTTPServerClient);
     procedure StartStopServer;
+    procedure StartStopSSLServer;
     procedure CloseClients;
   public
   end;
@@ -75,6 +80,7 @@ procedure TServerMainForm.FormCreate(Sender: TObject);
 begin
 
   FServer:=nil;
+  FSSLServer:=nil;
   FConnections:=TList.Create;
 
   Caption:='HTTP server ['+GetEnvironmentVariable('ComputerName')+']';
@@ -86,6 +92,7 @@ begin
   BoundsRect:=FStore.ReadRect('form.bounds',BoundsRect);
   HostEdit.Text:=FStore.ReadString('host');
   PortEdit.Text:=FStore.ReadInteger('port',80).ToString;
+  SSLPortEdit.Text:=FStore.ReadInteger('sslport',443).ToString;
   HomeEdit.Text:=FStore.ReadString('home',ExtractFilePath(ParamStr(0))+'Home');
   KeepAliveTimeoutEdit.Text:=FStore.ReadInteger('keep-alive.timeout',10).ToString;
   KeepAliveCheckBox.Checked:=FStore.ReadBool('keep-alive.enabled',False);
@@ -97,6 +104,7 @@ begin
   SetServerControls;
 
   StartStopServer;
+  StartStopSSLServer;
 
 end;
 
@@ -107,6 +115,7 @@ begin
     FStore.WriteRect('form.bounds',BoundsRect);
   FStore.WriteString('host',HostEdit.Text);
   FStore.WriteInteger('port',StrToIntDef(PortEdit.Text,80));
+  FStore.WriteInteger('sslport',StrToIntDef(SSLPortEdit.Text,443));
   FStore.WriteString('home',HomeEdit.Text);
   FStore.WriteInteger('keep-alive.timeout',StrToIntDef(KeepAliveTimeoutEdit.Text,10));
   FStore.WriteBool('keep-alive.enabled',KeepAliveCheckBox.Checked);
@@ -114,6 +123,7 @@ begin
 
   FStore.Free;
   FServer.Free;
+  FSSLServer.Free;
 
   CloseClients;
 
@@ -153,6 +163,38 @@ begin
 
 end;
 
+procedure TServerMainForm.StartStopSSLServer;
+begin
+
+  if Assigned(FSSLServer) then
+  begin
+
+    FreeAndNil(FSSLServer);
+    DoTrace('SSL Server stoped');
+    SetServerControls;
+
+  end else begin
+
+    if not Assigned(FWebApi) then
+    begin
+      FWebApi:=TWebApi.Create;
+    end;
+
+    FSSLServer:=THTTPServer.Create;
+    try
+      FSSLServer.OnAccept:=OnAcceptClient;
+      FSSLServer.Start(HostEdit.Text,StrToInt(SSLPortEdit.Text));
+      DoTrace('SSL Server started');
+      SetServerControls;
+    except
+      FreeAndNil(FSSLServer);
+      raise;
+    end;
+
+  end;
+
+end;
+
 procedure TServerMainForm.CloseClients;
 begin
   while FConnections.Count>0 do TObject(FConnections.Last).Free;
@@ -166,12 +208,13 @@ begin
 
   ClientsCount:=FConnections.Count;
 
-  ServerStarted:=Assigned(FServer);
+  ServerStarted:=Assigned(FServer) or Assigned(FSSLServer);
 
   StartServerButton.Caption:=IfThen(ServerStarted,'Stop','Start');
   CloseConnectionsButton.Enabled:=ClientsCount>0;
   HostEdit.Enabled:=not ServerStarted;
   PortEdit.Enabled:=not ServerStarted;
+  SSLPortEdit.Enabled:=not ServerStarted;
   ResultLabel.Caption:=' '+ClientsCount.ToString+' ';
 
 end;
@@ -198,10 +241,26 @@ begin
 end;
 
 procedure TServerMainForm.OnAcceptClient(Sender: TObject);
-var C: THTTPServerClient;
+var
+  Server: THTTPServer;
+  C: THTTPServerClient;
+  CertificatesPath: string;
 begin
 
+  Server:=THTTPServer(Sender);
+
+  var AcceptClient:=Server.AcceptClient;
+
   C:=THTTPServerClient.Create;
+
+  C.UseSSL:=Server=FSSLServer;
+
+  CertificatesPath:=ExtractFilePath(ParamStr(0));
+
+  C.CertCAFile:=CertificatesPath+'s_cabundle.pem';
+  C.CertificateFile:=CertificatesPath+'s_cacert.pem';
+  C.PrivateKeyFile:=CertificatesPath+'s_cakey.pem';
+  C.KeyPassword:='s_cakey';
 
   C.Monitor:=Self;
   C.KeepAliveTimeout:=StrToIntDef(KeepAliveTimeoutEdit.Text,10);
@@ -212,13 +271,13 @@ begin
 
   SetMiddlewares(C);
 
-  C.AcceptOn(FServer.AcceptClient);
-
-  CommunicationFrame.ToLog('Remote Host: '+FServer.AcceptRemoteHost+':'+
-    FServer.AcceptRemotePort.ToString+CRLF);
-
   FConnections.Add(C);
   SetServerControls;
+
+  CommunicationFrame.ToLog('Remote Host: '+Server.AcceptRemoteHost+':'+
+    Server.AcceptRemotePort.ToString+CRLF);
+
+  C.AcceptOn(AcceptClient);
 
 end;
 
@@ -231,6 +290,7 @@ end;
 procedure TServerMainForm.StartServerButtonClick(Sender: TObject);
 begin
   StartStopServer;
+  StartStopSSLServer;
 end;
 
 procedure TServerMainForm.CloseConnectionsButtonClick(Sender: TObject);

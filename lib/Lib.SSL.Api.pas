@@ -124,9 +124,11 @@ var
   function SslMethodV3:PSSL_METHOD;
   procedure SslCtxSetDefaultPasswdCb(ctx: PSSL_CTX; cb: PPasswdCb);
   procedure SslCtxSetDefaultPasswdCbUserdata(ctx: PSSL_CTX; u: SslPtr);
-//  function SslCtxLoadVerifyLocations(ctx: PSSL_CTX; const CAfile: PChar; const CApath: PChar):Integer;
+  function SslCtxLoadVerifyLocations(ctx: PSSL_CTX; const CAfile: AnsiString; const CApath: AnsiString):Integer;
   function SslNew(ctx: PSSL_CTX):PSSL;
   procedure SslFree(ssl: PSSL);
+  function SslCtxUseCertificateChainFile(ctx: PSSL_CTX; const _file: AnsiString):Integer;
+  function SslCtxUsePrivateKeyFile(ctx: PSSL_CTX; const _file: AnsiString; _type: Integer):Integer;
   function SslConnect(ssl: PSSL):Integer;
   function SslShutdown(ssl: PSSL):Integer;
   function SslRead(ssl: PSSL; buf: SslPtr; num: Integer):Integer;
@@ -135,6 +137,7 @@ var
   procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: Integer; arg2: PFunction);
   function SslCipherDescription(cssl: SslPtr): string;
   function SSLGetCurrentCipher(ssl: PSSL):SslPtr;
+  function SslAccept(ssl: PSSL):Integer;
 
   // libeay.dll
 
@@ -458,10 +461,42 @@ begin
     _SslFree(ssl);
 end;
 
+function SslCtxUseCertificateChainFile(ctx: PSSL_CTX; const _file: AnsiString):Integer;
+begin
+  if InitSSLInterface and Assigned(_SslCtxUseCertificateChainFile) then
+    Result := _SslCtxUseCertificateChainFile(ctx, PAnsiChar(_file))
+  else
+    Result := 0;
+end;
+
+function SslCtxUsePrivateKeyFile(ctx: PSSL_CTX; const _file: AnsiString; _type: Integer):Integer;
+begin
+  if InitSSLInterface and Assigned(_SslCtxUsePrivateKeyFile) then
+    Result := _SslCtxUsePrivateKeyFile(ctx, PAnsiChar(_file), _type)
+  else
+    Result := 0;
+end;
+
+function SslCtxLoadVerifyLocations(ctx: PSSL_CTX; const CAfile: AnsiString; const CApath: AnsiString):Integer;
+begin
+  if InitSSLInterface and Assigned(_SslCtxLoadVerifyLocations) then
+    Result := _SslCtxLoadVerifyLocations(ctx, SslPtr(CAfile), SslPtr(CApath))
+  else
+    Result := 0;
+end;
+
 function SslConnect(ssl: PSSL):Integer;
 begin
   if InitSSLInterface and Assigned(_SslConnect) then
     Result := _SslConnect(ssl)
+  else
+    Result := -1;
+end;
+
+function SslAccept(ssl: PSSL):Integer;
+begin
+  if InitSSLInterface and Assigned(_SslAccept) then
+    Result := _SslAccept(ssl)
   else
     Result := -1;
 end;

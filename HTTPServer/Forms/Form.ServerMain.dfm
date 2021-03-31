@@ -61,6 +61,20 @@ object ServerMainForm: TServerMainForm
     ParentColor = False
     ParentFont = False
   end
+  object PortLabel: TLabel
+    Left = 255
+    Top = 18
+    Width = 48
+    Height = 13
+    Caption = 'HTTP Port'
+  end
+  object SSLPortLabel: TLabel
+    Left = 348
+    Top = 18
+    Width = 54
+    Height = 13
+    Caption = 'HTTPS Port'
+  end
   object StartServerButton: TButton
     Left = 762
     Top = 146
@@ -72,7 +86,7 @@ object ServerMainForm: TServerMainForm
     OnClick = StartServerButtonClick
   end
   object PortEdit: TEdit
-    Left = 247
+    Left = 310
     Top = 15
     Width = 31
     Height = 21
@@ -186,5 +200,13 @@ object ServerMainForm: TServerMainForm
         ExplicitHeight = 369
       end
     end
+  end
+  object SSLPortEdit: TEdit
+    Left = 408
+    Top = 15
+    Width = 31
+    Height = 21
+    TabOrder = 9
+    Text = '443'
   end
 end
