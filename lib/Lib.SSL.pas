@@ -186,13 +186,16 @@ function    TSSL.accept(Socket: TSocket): Boolean;
             begin
             Result:=False;
             if prepare and (sslsetfd(FPSSL,Socket)>=1)
-            then while not Result do
+            then for var i:=0 to 10 do
+                 begin
                  case SslGetError(FPSSL,sslaccept(FPSSL)) of
-                 SSL_ERROR_NONE: Result:=True;
+                 SSL_ERROR_NONE: Exit(True);
                  SSL_ERROR_WANT_READ,SSL_ERROR_WANT_WRITE:;
                  else Break;
-                 end
-            else seterror('');
+                 end;
+                 sleep(1+i*10);
+                 end;
+            seterror('');
             end;
 
 function    TSSL.cipher: string;

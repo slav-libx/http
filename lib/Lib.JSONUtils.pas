@@ -39,7 +39,7 @@ begin
   end;
 end;
 
-{$IFDEF VER330} // 10.3
+{$IF CompilerVersion > 29.0} // > XE8
 
 procedure JSONSetPairValue(jsPair: TJSONPair; jsValue: TJSONValue);
 begin
@@ -47,7 +47,7 @@ begin
     jsPair.JsonValue:=jsValue;
 end;
 
-{$ELSE} // XE8
+{$ELSE}
 
 procedure JSONSetPairValue(jsPair: TJSONPair; jsValue: TJSONValue);
 begin
