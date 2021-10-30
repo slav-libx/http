@@ -177,6 +177,12 @@ function    TSSL.connect(Socket: TSocket):Boolean;
                    Exit(True);
                  end;
                  SSL_ERROR_WANT_READ,SSL_ERROR_WANT_WRITE:;
+                 SSL_ERROR_SYSCALL:
+                 begin
+                   FErrorCode:=SSL_ERROR_SYSCALL;
+                   FErrorText:='SSL_connect: SSL_ERROR_SYSCALL in connection';
+                   Exit;
+                 end;
                  else Break;
                  end;
                  sleep(1+i*10);
