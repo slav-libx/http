@@ -44,6 +44,7 @@ function HTTPGetValue(const S: string): string;
 function HTTPEndedChunked(const B: TBytes): Boolean;
 function HTTPBytesFromChunked(const B: TBytes): TBytes;
 function HTTPGetHeaderLength(const B: TBytes): Integer;
+function HTTPIsInvalidHeaderData(const B: TBytes): Boolean;
 
 implementation
 
@@ -373,6 +374,11 @@ function HTTPGetHeaderLength(const B: TBytes): Integer;
 var Index: Integer;
 begin
   Result:=BytesIndexOf(B,[13,10,13,10]);
+end;
+
+function HTTPIsInvalidHeaderData(const B: TBytes): Boolean;
+begin
+  Result:=Length(B)>10000;
 end;
 
 function HTTPGetTag(const Value,Tag: string): string;

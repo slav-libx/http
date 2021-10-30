@@ -44,6 +44,8 @@ type
     procedure AddContentJson(const Text: string);
     procedure AddContentFile(const FileName: string); overload;
     procedure AddContentFile(const FileName,ContentType: string); overload;
+    procedure AddContentFile(const FileName: string; const Bytes: TBytes); overload;
+    procedure AddContentFile(const FileName,ContentType: string; const Bytes: TBytes); overload;
     property Headers: THeaders read FHeaders;
   public
     procedure Reset; virtual;
@@ -160,7 +162,17 @@ end;
 
 procedure TContent.AddContentFile(const FileName,ContentType: string);
 begin
-  Content:=TFile.ReadAllBytes(FileName);
+  AddContentFile(FileName,ContentType,TFile.ReadAllBytes(FileName));
+end;
+
+procedure TContent.AddContentFile(const FileName: string; const Bytes: TBytes);
+begin
+  AddContentFile(FileName,HTTPGetMIMEType(ExtractFileExt(FileName)),Bytes);
+end;
+
+procedure TContent.AddContentFile(const FileName,ContentType: string; const Bytes: TBytes);
+begin
+  Content:=Bytes;
   FContentType:=ContentType;
   Description:=FileName+' ('+ContentSizeToString(Content)+')';
 end;
@@ -220,6 +232,12 @@ begin
       else
         FState:=stUnknownLength;
 
+    end else
+
+    if HTTPIsInvalidHeaderData(Content) then
+    begin
+      FState:=stNone;
+      Result:=0;
     end;
 
   end;

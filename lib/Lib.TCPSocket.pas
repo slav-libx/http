@@ -541,7 +541,7 @@ procedure TTCPClient.DoExceptCode(Code: Integer);
 begin
   if UseSSL and (FSSL.ErrorCode=Code) then
   begin
-    FExceptionCode:=Code;
+    FExceptionCode:=FSSL.ErrorCode;
     FExceptionMessage:=FSSL.ErrorText;
   end else
     inherited;
@@ -601,7 +601,7 @@ begin
   if R<>-1 then
     Result:=True
   else
-    if WSAGetLastError<>10035 then Check(R);
+    if WSAGetLastError<>WSAEWOULDBLOCK then Check(R);
 
   if Result then
   begin
@@ -696,33 +696,21 @@ begin
 end;
 
 procedure TTCPClient.WriteBuf(var Buffer; Count: Integer);
-var
-  W: Boolean;
-  I,LE,C: Integer;
+var I,LE: Integer;
 begin
   CheckConnect;
-  W:=False;
-  I:=0;
-  C:=0;
-  while not W do
+  while True do
   begin
     if UseSSL then
       I:=fSSL.send(Buffer,Count)
     else
       I:=send(FSocket,Pointer(Buffer)^,Count,0);
-    W:=True;
-    LE:=0;
     if I=-1 then
     begin
       LE:=WSAGetLastError;
-      if LE=10035 then
-      begin
-        Inc(C);
-        W:=C>10;// False;
-        Sleep(400);
-      end;
-    end;
-
+      if LE<>WSAEWOULDBLOCK then Break;
+    end else
+      Break;
   end;
   if I=-1 then DoExcept(LE);
   //Check(I);

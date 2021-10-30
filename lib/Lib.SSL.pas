@@ -15,6 +15,7 @@ type
     FPSSL: PSSL;
     FPSSL_CTX: PSSL_CTX;
     FConnected: Boolean;
+    procedure seterror;
   public
     constructor create;
     destructor destroy; override;
@@ -22,7 +23,6 @@ type
     procedure shutdown;
     function recv(var b; w: Integer): Integer;
     function send(var b; w: Integer): Integer;
-    procedure seterror(m: string);
     function cipher: string;
     function init: Boolean;
     function deinit: Boolean;
@@ -73,7 +73,8 @@ destructor  TSSL.destroy;
 function    TSSL.SetKeys: Boolean;
             begin
 
-            Result:=True;
+
+            Result:=True;
 
             if CertificateFile <> '' then
               Result:=SslCtxUseCertificateChainFile(FPSSL_CTX,CertificateFile)=1;
@@ -102,7 +103,7 @@ function    TSSL.init:Boolean;
           //FPSSL_CTX:=sslctxnew(sslmethodv3);
 
             if FPSSL_CTX=nil
-            then seterror('')
+            then seterror
             else begin
 
                  s:='DEFAULT';
@@ -121,7 +122,7 @@ function    TSSL.init:Boolean;
                  FPSSL:=sslnew(FPSSL_CTX);
 
                  if FPSSL=nil
-                 then seterror('')
+                 then seterror
                  else result:=True;
 
                  end;
@@ -164,14 +165,24 @@ function    TSSL.connect(Socket: TSocket):Boolean;
 
             Result:=False;
 
-            if Socket<>-1 then
+            if Socket=-1 then Exit;
 
-            if prepare and (sslsetfd(FPSSL,Socket)>=1) and (sslconnect(FPSSL)>=1)
-            then begin
-                 FConnected:=True;
-                 Result:=True;
-                 end
-            else seterror('');
+            if prepare and (sslsetfd(FPSSL,Socket)>=1)
+            then for var i:=0 to 10 do
+                 begin
+                 case SslGetError(FPSSL,sslconnect(FPSSL)) of
+                 SSL_ERROR_NONE:
+                 begin
+                   FConnected:=True;
+                   Exit(True);
+                 end;
+                 SSL_ERROR_WANT_READ,SSL_ERROR_WANT_WRITE:;
+                 else Break;
+                 end;
+                 sleep(1+i*10);
+                 end;
+
+            seterror;
 
             end;
 
@@ -195,7 +206,7 @@ function    TSSL.accept(Socket: TSocket): Boolean;
                  end;
                  sleep(1+i*10);
                  end;
-            seterror('');
+            seterror;
             end;
 
 function    TSSL.cipher: string;
@@ -203,26 +214,23 @@ function    TSSL.cipher: string;
             result:=sslcipherdescription(sslgetcurrentcipher(FPSSL));
             end;
 
-procedure   TSSL.seterror(m:string);
-            var s:ansistring;
+procedure   TSSL.seterror;
             begin
 
-            if m='' then m:='Error connecting with SSL.';
-
-            FErrorText:='';
             FErrorCode:=errgeterror;
 
             errclearerror;
 
             if FErrorCode<>0
             then begin
-                 s:=stringofchar(#0,256);
+                 var s:ansistring:=stringofchar(#0,256);
                  errerrorstring(FErrorCode,s,length(s));
                  FErrorText:=s;
                  end
-            else FErrorCode:=1;
-
-            if FErrorText='' then FErrorText:=m;
+            else begin
+                 FErrorCode:=1;
+                 FErrorText:='SSL error';
+                 end;
 
             end;
 

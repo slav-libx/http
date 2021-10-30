@@ -5,4 +5,5 @@
 *.json
 *.identcache
 
-HTTPServer/Home/files/
+HTTPServer/Home
+HTTPClient/Downloads
